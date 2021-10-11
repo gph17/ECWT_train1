@@ -143,7 +143,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ButtonB.cpp" />
     <ClCompile Include="dataWin.cpp" />
     <ClCompile Include="dataWin1.cpp" />
     <ClCompile Include="dAWin.cpp" />
@@ -157,7 +156,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseWindow.h" />
-    <ClInclude Include="ButtonB.h" />
     <ClInclude Include="dataWin.h" />
     <ClInclude Include="dataWin1.h" />
     <ClInclude Include="dAWin.h" />
