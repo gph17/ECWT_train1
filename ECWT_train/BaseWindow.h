@@ -1,9 +1,6 @@
 #pragma once
 
 #include "DBMem.h"
-
-gobbledigook
-
 #include "util.h"
 
 template <class DERIVED_TYPE>
