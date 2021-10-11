@@ -1,7 +1,6 @@
 #pragma once
 
 #include "DBMem.h"
-
 #include "util.h"
 
 template <class DERIVED_TYPE>
