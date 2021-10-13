@@ -3,6 +3,7 @@
 #include <Eigen/Dense>
 #include <map>
 #include <list>
+#include <set>
 
 #include "drawable.h"
 #include "dataWin1.h"
@@ -22,11 +23,12 @@ public:
 		//  be worth storing, i.e., identity matrix padded); b also too simple to be worth storing
 	static std::map<int, Eigen::Matrix<long long, Eigen::Dynamic, Eigen::Dynamic>> Hi;	//generate for each n 
 																						//	encountered
-	static std::map<compKey, Eigen::MatrixXd> G;	//modified H^{-1} - generate for each (n, cNo, wNo) encountered
+	static std::map<complexKey, Eigen::MatrixXd> G;	//modified H^{-1} - generate for each (n, cNo, wNo) encountered
 
 	static std::map<int, Eigen::MatrixXd> fTrans;
 
-	static const std::map<compKey, bool> valid;
+	static const std::set<complexKey> valid;
+	static std::set<int> getValid();
 	/*make static members*/
 	static void makeH(int);
 	static void makeG(int, int, int);

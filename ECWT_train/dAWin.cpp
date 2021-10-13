@@ -3,6 +3,8 @@
 #include "dAWin.h"
 
 ID2D1Factory* dAWin::m_pDirect2dFactory = NULL;
+IDWriteFactory* dAWin::m_pWriteFactory = NULL;
+IDWriteTextFormat* dAWin::pTextFormat = NULL;
 
 HRESULT dAWin::OnCreate()
 {
@@ -69,6 +71,21 @@ HRESULT dAWin::CreateDeviceIndependentResources()
     // Create a Direct2D factory.
     HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
 
+    if (SUCCEEDED(hr))
+    {
+        hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
+            __uuidof(IDWriteFactory),
+            reinterpret_cast<IUnknown**>(&m_pWriteFactory));
+    }
+    if (SUCCEEDED(hr))
+        hr = m_pWriteFactory->CreateTextFormat(L"Gabriola", // Font family name.
+            NULL,   // Font collection (NULL sets it to use the system font collection).
+            DWRITE_FONT_WEIGHT_REGULAR,
+            DWRITE_FONT_STYLE_NORMAL,
+            DWRITE_FONT_STRETCH_NORMAL,
+            16.0f,
+            L"en-GB",
+            &pTextFormat);
     return hr;
 }
 
@@ -144,8 +161,8 @@ HRESULT dAWin::GraphSetUp()
             D2D1::Point2F(rtSize.width, y),
             m_pBlackBrush,
             0.5f);
+        DrawText();
         hr = m_pRenderTarget->EndDraw();
-//        InvalidateRect(m_hwnd, NULL, FALSE);
     }
     if (hr == D2DERR_RECREATE_TARGET)
     {
@@ -153,4 +170,29 @@ HRESULT dAWin::GraphSetUp()
         DiscardDeviceResources();
     }
     return hr;
+}
+
+void dAWin::DrawText()
+{
+    int num = GetDlgCtrlID(m_hwnd) - 100;
+    RECT rc;
+    GetClientRect(m_hwnd, &rc);
+    UINT w = rc.right - rc.left, h = rc.bottom - rc.top;
+    D2D1_RECT_F layoutRect = D2D1::RectF((static_cast<FLOAT>(rc.left + w / 25)),
+        0.f,
+        static_cast<FLOAT>(w),
+        static_cast<FLOAT>(h));
+    wchar_t text[10];
+    switch (num)
+    {
+    case 0:
+        wcscpy_s(text, L"Channel 1");
+        break;
+    case 1:
+        wcscpy_s(text, L"Channel 2");
+        break;
+    case 2:
+        wcscpy_s(text, L"Channel 3");
+    }
+    m_pRenderTarget->DrawText(text, wcslen(text), pTextFormat, layoutRect, m_pBlackBrush);
 }

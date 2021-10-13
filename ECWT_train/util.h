@@ -14,15 +14,15 @@ bool csvCheck(PWSTR);
 
 enum regStat { NEEDPLAIN, NEEDSPECIAL, DONE };
 
-struct compKey
+struct complexKey
 {
 	int n, c, w;
 
-	friend bool operator<(const compKey& compKey1, const compKey& compKey2)
+	friend bool operator<(const complexKey& complexKey1, const complexKey& complexKey2)
 	{
-		return (compKey1.n == compKey2.n) ?
-			((compKey1.c == compKey2.c) ? (compKey1.w < compKey2.w) : (compKey1.c < compKey2.c)) :
-			(compKey1.n < compKey2.n);
+		return (complexKey1.n == complexKey2.n) ?
+			((complexKey1.c == complexKey2.c) ? (complexKey1.w < complexKey2.w) : (complexKey1.c < complexKey2.c)) :
+			(complexKey1.n < complexKey2.n);
 	}
 };
 

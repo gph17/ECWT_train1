@@ -6,7 +6,6 @@
 #include <windows.h>
 
 #include "BaseWindow.h"
-#include "ButtonB.h"
 #include "dAWin.h"
 
 class MainWindow : public BaseWindow<MainWindow>
@@ -14,10 +13,14 @@ class MainWindow : public BaseWindow<MainWindow>
     static  regStat registered;
 
     dAWin graphs[3];
-    ButtonB demoButton;
-    ButtonB BgButton;
-    ButtonB BrButton;
-    ButtonB AbButton;
+    HWND demoButton;
+    HWND BgButton;
+    HWND BrButton;
+    HWND AbButton;
+    HWND degreeLB;
+    HWND cWCondLB;
+    HWND degreeLBL;
+    HWND cWCondLBL;
 
     PWSTR pszFilePath;
 
@@ -32,7 +35,8 @@ public:
     MainWindow()
     {
     }
-
+    static BOOL CALLBACK PlaceCntrl(HWND, LPARAM);
+    static BOOL CALLBACK BToTop(HWND, LPARAM);
     PCWSTR  ClassName() const { return L"ECWT Unsupervised Training"; }
     LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
     friend BOOL BaseWindow::Create(PCWSTR, DWORD, DWORD, int, int, int, int, HWND, HMENU);

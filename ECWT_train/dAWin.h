@@ -2,6 +2,7 @@
 
 #include <atlbase.h>
 #include <d2d1.h>
+#pragma comment(lib, "dwrite")
 #pragma comment(lib, "d2d1")
 #include <d2d1helper.h>
 #include <dwrite.h>
@@ -51,6 +52,8 @@ class dAWin : public BaseWindow<dAWin>
     void Resize();
     static regStat registered;
     static ID2D1Factory* m_pDirect2dFactory;
+    static IDWriteFactory* m_pWriteFactory;
+    static IDWriteTextFormat* pTextFormat;
     ID2D1HwndRenderTarget* m_pRenderTarget;
     ID2D1SolidColorBrush* m_pBlackBrush;
     ID2D1SolidColorBrush* m_pBlueBrush;
@@ -93,12 +96,10 @@ private:
 
     // Draw content.
     HRESULT OnRender();
+    void DrawText();
 
     // Resize the render target.
-    void OnResize(
-        UINT width,
-        UINT height
-    );
+    void OnResize(UINT width, UINT height);
     friend class MainWindow;
     friend class BaseWindow;
 };

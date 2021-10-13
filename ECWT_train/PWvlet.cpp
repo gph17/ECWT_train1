@@ -11,41 +11,26 @@ using namespace Eigen;
 using namespace std;
 
 /*initialise static members*/
-map<compKey, MatrixXd> PWvlet::G; 
+map<complexKey, MatrixXd> PWvlet::G; 
 MatrixXd PWvlet::H;
 Matrix<long long, Dynamic, Dynamic> PWvlet::W;
 map<int, Matrix<long long, Dynamic, Dynamic>> PWvlet::Hi;
 
 map<int, MatrixXd> PWvlet::fTrans = map<int, MatrixXd>();
 
-const map<compKey, bool> PWvlet::valid = { {{4, 0, 0}, true}, {{4, 0, 1}, true},
-	{{5, 0, 0}, true}, {{5, 0, 1}, true}, {{5, 0, 2}, true},
-	{{5, 1, 1}, true},
-	{{6, 0, 0}, true}, {{6, 0, 1}, true}, {{6, 0, 2}, true}, {{6, 0, 3}, true},
-	{{6, 1, 1}, true}, {{6, 1, 2}, true},
-	{{7, 0, 0}, true}, {{7, 0, 1}, true}, {{7, 0, 2}, true}, {{7, 0, 3}, true},
-	{{7, 1, 1}, true}, {{7, 1, 2}, true}, {{7, 1, 3}, true},
-	{{7, 2, 2}, true},
-	{{8, 0, 0}, true}, {{8, 0, 1}, true}, {{8, 0, 2}, true}, {{8, 0, 3}, true},
-	{{8, 1, 1}, true}, {{8, 1, 2}, true}, {{8, 1, 3}, true},
-	{{8, 2, 2}, true},
-	{{9, 0, 0}, true}, {{9, 0, 1}, true}, {{9, 0, 2}, true}, {{9, 0, 3}, true},
-	{{9, 1, 1}, true}, {{9, 1, 2}, true}, {{9, 1, 3}, true},
-	{{9, 2, 2}, true},
-	{{10, 0, 0}, true}, {{10, 0, 1}, true}, {{10, 0, 2}, true}, {{10, 0, 3}, true},
-	{{10, 1, 1}, true}, {{10, 1, 2}, true}, {{10, 1, 3}, true},
-	{{11, 0, 0}, true}, {{11, 0, 1}, true}, {{11, 0, 2}, true},
-	{{11, 1, 1}, true}, {{11, 1, 2}, true},
-	{{12, 0, 0}, true}, {{12, 0, 1}, true}, {{12, 0, 2}, true},
-	{{12, 1, 1}, true}, {{12, 1, 2}, true},
-	{{13, 0, 0}, true}, {{13, 0, 1}, true}, {{13, 0, 2}, true},
-	{{13, 1, 1}, true}, {{13, 1, 2}, true},
-	{{14, 0, 0}, true}, {{14, 0, 1}, true}, {{14, 0, 2}, true},
-	{{14, 1, 1}, true}, {{14, 1, 2}, true},
-	{{15, 0, 0}, true}, {{15, 0, 1}, true}, {{15, 0, 2}, true},
-	{{15, 1, 1}, true}, {{15, 1, 2}, true},
-	{{16, 0, 0}, true}, {{16, 0, 1}, true}, {{16, 0, 2}, true},
-	{{16, 1, 1}, true}, {{16, 1, 2}, true}, {{16, 1, 3}, true} }; 
+const set<complexKey> PWvlet::valid = { {4, 0, 0}, {4, 0, 1},
+	{5, 0, 0}, {5, 0, 1}, {5, 0, 2}, {5, 1, 1},
+	{6, 0, 0}, {6, 0, 1}, {6, 0, 2}, {6, 0, 3}, {6, 1, 1}, {6, 1, 2},
+	{7, 0, 0}, {7, 0, 1}, {7, 0, 2}, {7, 0, 3}, {7, 1, 1}, {7, 1, 2}, {7, 1, 3}, {7, 2, 2},
+	{8, 0, 0}, {8, 0, 1}, {8, 0, 2}, {8, 0, 3}, {8, 1, 1}, {8, 1, 2}, {8, 1, 3}, {8, 2, 2},
+	{9, 0, 0}, {9, 0, 1}, {9, 0, 2}, {9, 0, 3}, {9, 1, 1}, {9, 1, 2}, {9, 1, 3}, {9, 2, 2},
+	{10, 0, 0}, {10, 0, 1}, {10, 0, 2}, {10, 0, 3}, {10, 1, 1}, {10, 1, 2}, {10, 1, 3},
+	{11, 0, 0}, {11, 0, 1}, {11, 0, 2}, {11, 1, 1}, {11, 1, 2},
+	{12, 0, 0}, {12, 0, 1}, {12, 0, 2}, {12, 1, 1}, {12, 1, 2},
+	{13, 0, 0}, {13, 0, 1}, {13, 0, 2}, {13, 1, 1}, {13, 1, 2},
+	{14, 0, 0}, {14, 0, 1}, {14, 0, 2}, {14, 1, 1}, {14, 1, 2},
+	{15, 0, 0}, {15, 0, 1}, {15, 0, 2}, {15, 1, 1}, {15, 1, 2},
+	{16, 0, 0}, {16, 0, 1}, {16, 0, 2}, {16, 1, 1}, {16, 1, 2}, {16, 1, 3} }; 
 
 PWvlet::PWvlet(int n1, int cNo1, int wCNo1) :
 	wvlet(n1, cNo1, wCNo1)
@@ -55,7 +40,7 @@ PWvlet::PWvlet(int n1, int cNo1, int wCNo1) :
 		cerr << "Fewer than 3 degrees of freedom after conditions\n";
 		exit(-1);
 	}
-	compKey cK = { n, cNo, wCNo };
+	complexKey cK = { n, cNo, wCNo };
 	if (!valid.count(cK))
 	{
 		cerr << "Numerical problems with this combination of parameters\n";
@@ -74,7 +59,7 @@ PWvlet::PWvlet(dataWin1 dW, int n1, int cNo1, int wCNo1) :
 		cerr << "Fewer than 3 degrees of freedom after conditions\n";
 		exit(-1);
 	}
-	compKey cK = { n, cNo, wCNo };
+	complexKey cK = { n, cNo, wCNo };
 	if (!valid.count(cK))
 	{
 		cerr << "Numerical problems with this combination of parameters\n";
@@ -175,7 +160,7 @@ void PWvlet::makeW(int n1, int w1)
 
 void PWvlet::makeG(int n1, int c1, int w1)
 {
-	compKey cK = {n1, c1, w1};
+	complexKey cK = {n1, c1, w1};
 	if (G.count(cK))
 		return;
 	int k;
@@ -274,4 +259,12 @@ double PWvlet::IP(const dataWin1& dW) const	//L2 IP
 	MatrixXd K = fTrans[dW.WLen];
 	K.conservativeResize(n + 1, dW.WLen);
 	return dW.Vec.transpose() * (K.transpose() * para);
+}
+
+set<int> PWvlet::getValid()
+{
+	set<int> ret;
+	for (auto item : valid)
+		ret.insert(item.n);
+	return ret;
 }
