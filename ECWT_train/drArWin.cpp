@@ -1,12 +1,11 @@
 #include "DBMem.h"
 
-#include "dAWin.h"
+#include "drArWin.h"
 
-ID2D1Factory* dAWin::m_pDirect2dFactory = NULL;
-IDWriteFactory* dAWin::m_pWriteFactory = NULL;
-IDWriteTextFormat* dAWin::pTextFormat = NULL;
+IDWriteFactory* drArWin::m_pWriteFactory = NULL;
+IDWriteTextFormat* drArWin::pTextFormat = NULL;
 
-HRESULT dAWin::OnCreate()
+HRESULT drArWin::OnCreate()
 {
     HRESULT hr = CreateDeviceIndependentResources();
     if (SUCCEEDED(hr))
@@ -18,7 +17,7 @@ HRESULT dAWin::OnCreate()
     return hr;
 }
 
-void dAWin::Resize()
+void drArWin::Resize()
 {
     HWND hPar = GetAncestor(m_hwnd, GA_PARENT);
     RECT parRec;
@@ -32,7 +31,7 @@ void dAWin::Resize()
         exit(-1);
 }
 
-void dAWin::OnPaint()
+void drArWin::OnPaint()
 {
     if (FAILED(GraphSetUp()))
         exit(-1);
@@ -46,7 +45,7 @@ void dAWin::OnPaint()
     */
 }
 
-LRESULT dAWin::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT drArWin::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     //    int i;
     switch (uMsg)
@@ -66,17 +65,11 @@ LRESULT dAWin::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
     return DefWindowProc(m_hwnd, uMsg, wParam, lParam);
 }
 
-HRESULT dAWin::CreateDeviceIndependentResources()
+HRESULT drArWin::CreateDeviceIndependentResources()
 {
-    // Create a Direct2D factory.
-    HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
-
-    if (SUCCEEDED(hr))
-    {
-        hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
-            __uuidof(IDWriteFactory),
-            reinterpret_cast<IUnknown**>(&m_pWriteFactory));
-    }
+	HRESULT hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
+		__uuidof(IDWriteFactory),
+		reinterpret_cast<IUnknown**>(&m_pWriteFactory));
     if (SUCCEEDED(hr))
         hr = m_pWriteFactory->CreateTextFormat(L"Gabriola", // Font family name.
             NULL,   // Font collection (NULL sets it to use the system font collection).
@@ -90,10 +83,10 @@ HRESULT dAWin::CreateDeviceIndependentResources()
 }
 
 // Initialize device-dependent resources.
-HRESULT dAWin::CreateDeviceResources()
+HRESULT drArWin::CreateDeviceResources()
 {
-    if (!m_pDirect2dFactory)
-        CreateDeviceIndependentResources();
+    if (!MainWindow::m_pDirect2dFactory)
+        MainWindow::CreateDeviceIndependentResources();
 
     // Create a Direct2D render target.
     HRESULT hr = S_OK;
@@ -110,7 +103,7 @@ HRESULT dAWin::CreateDeviceResources()
 
         D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
 
-        hr = m_pDirect2dFactory->CreateHwndRenderTarget(props,
+        hr = MainWindow::m_pDirect2dFactory->CreateHwndRenderTarget(props,
 			D2D1::HwndRenderTargetProperties(m_hwnd, size),
 			&m_pRenderTarget);
     }
@@ -142,7 +135,7 @@ HRESULT OnRender()
     return hr;
 }
 
-HRESULT dAWin::GraphSetUp()
+HRESULT drArWin::GraphSetUp()
 {
     HRESULT hr = CreateDeviceResources();
     if (SUCCEEDED(hr))
@@ -172,7 +165,7 @@ HRESULT dAWin::GraphSetUp()
     return hr;
 }
 
-void dAWin::DrawText()
+void drArWin::DrawText()
 {
     int num = GetDlgCtrlID(m_hwnd) - 100;
     RECT rc;
@@ -195,62 +188,4 @@ void dAWin::DrawText()
         wcscpy_s(text, L"Channel 3");
     }
     m_pRenderTarget->DrawText(text, wcslen(text), pTextFormat, layoutRect, m_pBlackBrush);
-}
-
-void dAWin::WSEValid(wchar_t* inp, int& m, int& s, int& M)
-{
-    std::wstringstream sInp(inp);
-    sInp >> m;
-    if (!sInp.good() || m <= 0)
-    {
-        m = 0;
-        s = 1;
-        M = 0;
-        return;
-    }
-    wchar_t ch;
-    sInp >> ch;
-    if (!sInp.good() || ch != L':')
-    {
-        m = 0;
-        s = 1;
-        M = 0;
-        return;
-    }
-    sInp >> s;
-    if (!sInp.good() || s < 1)
-    {
-        m = 0;
-        s = 1;
-        M = 0;
-        return;
-    }
-    sInp >> ch;
-    if (sInp.eof())
-    {
-        M = s;
-        s = 1;
-        return;
-    }
-    if (!sInp.good() || ch != L':')
-    {
-        m = 0;
-        s = 1;
-        M = 0;
-        return;
-    }
-    sInp >> M;
-    if (!sInp.good() || M < (m + s))
-    {
-        m = 0;
-        s = 1;
-        M = 0;
-        return;
-    }
-    sInp >> ch;
-    if (sInp.eof())
-        return;
-    m = 0;
-    s = 1;
-    M = 0;
 }

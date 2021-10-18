@@ -268,3 +268,17 @@ set<int> PWvlet::getValid()
 		ret.insert(item.n);
 	return ret;
 }
+
+set<pair<int, int>> PWvlet::getValid(int deg)
+{
+	set<pair<int, int>> ret;
+	pair<int, int> val;
+	for (auto item : valid)
+		if (item.n== deg)
+		{
+			val.first = item.c;
+			val.second = item.w;
+			ret.insert(val);
+		}
+	return ret;
+}

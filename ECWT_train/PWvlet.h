@@ -4,6 +4,7 @@
 #include <map>
 #include <list>
 #include <set>
+#include <utility>
 
 #include "drawable.h"
 #include "dataWin1.h"
@@ -29,6 +30,7 @@ public:
 
 	static const std::set<complexKey> valid;
 	static std::set<int> getValid();
+	static std::set<std::pair<int, int>> getValid(int);
 	/*make static members*/
 	static void makeH(int);
 	static void makeG(int, int, int);

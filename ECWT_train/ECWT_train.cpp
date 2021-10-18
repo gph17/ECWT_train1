@@ -64,14 +64,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
                 hr = pFileOpen->GetResult(&pItem);
                 if (SUCCEEDED(hr))
                 {
-                    PWSTR pszFilePath;
-                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+                    PWSTR pFilePath;
+                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pFilePath);
 
                     // Display the file name to the user.
                     if (SUCCEEDED(hr))
                     {
-                        MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
-                        CoTaskMemFree(pszFilePath);
+                        MessageBoxW(NULL, pFilePath, L"File Path", MB_OK);
+                        CoTaskMemFree(pFilePath);
                     }
 
                 }

@@ -15,19 +15,7 @@
 #include <windows.h>
 
 #include "BaseWindow.h"
-
-template<typename Interface>
-inline void SafeRelease(
-    Interface** ppInterfaceToRelease
-)
-{
-    if (*ppInterfaceToRelease != NULL)
-    {
-        (*ppInterfaceToRelease)->Release();
-
-        (*ppInterfaceToRelease) = NULL;
-    }
-}
+#include "MainWindow.h"
 
 
 #ifndef Assert
@@ -45,35 +33,32 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
 #endif
 
-class dAWin : public BaseWindow<dAWin>
+class dArWin : public BaseWindow<dArWin>
 {
     HRESULT OnCreate();
     void OnPaint();
     void Resize();
     static regStat registered;
-    static ID2D1Factory* m_pDirect2dFactory;
     static IDWriteFactory* m_pWriteFactory;
     static IDWriteTextFormat* pTextFormat;
     ID2D1HwndRenderTarget* m_pRenderTarget;
     ID2D1SolidColorBrush* m_pBlackBrush;
     ID2D1SolidColorBrush* m_pBlueBrush;
     ID2D1SolidColorBrush* m_pRedBrush;
-
 public:
-    dAWin():    m_pRenderTarget(NULL), 
+
+    dArWin():    m_pRenderTarget(NULL), 
                 m_pRedBrush(NULL), 
                 m_pBlueBrush(NULL), 
                 m_pBlackBrush(NULL)
     {
     }
 
-    ~dAWin()
+    ~dArWin()
     {
         DiscardDeviceResources();
     }
     HRESULT GraphSetUp();
-    static void WSEValid(wchar_t* inp, int& m, int& s, int& M);
-
 private:
     PCWSTR  ClassName() const { return L"Drawing Area"; }
     LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -82,12 +67,12 @@ private:
     // Initialize device-dependent resources.
     HRESULT CreateDeviceResources();
 
-    void DiscardDeviceResources()
+    void DiscardDeviceResources()   //replace by using smart pointer
     {
         _CrtMemState s1;
         _CrtMemCheckpoint(&s1);
         _CrtMemState s2, s3;
-        SafeRelease(&m_pRenderTarget);
+		SafeRelease(&m_pRenderTarget);
         SafeRelease(&m_pRedBrush);
         SafeRelease(&m_pBlueBrush);
         SafeRelease(&m_pBlackBrush);
