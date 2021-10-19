@@ -31,6 +31,8 @@ class MainWindow : public BaseWindow<MainWindow>
 
     static const COLORREF bgCol;
     static const HBRUSH hbrBg;
+    static const COLORREF bgColD;
+    static const HBRUSH hbrBgD;
 
     PWSTR pFilePath;
     int LSz;
@@ -51,7 +53,8 @@ class MainWindow : public BaseWindow<MainWindow>
     LRESULT ChangeStatCol(WPARAM, LPARAM);
     LRESULT OnDegChange(WPARAM, LPARAM);
     LRESULT OnLBNSel(WPARAM, LPARAM);
-    LRESULT OnWSChange(WPARAM wParam, LPARAM lParam);
+    LRESULT OnWSChange(WPARAM, LPARAM);
+    LRESULT OnWSHChange(WPARAM, LPARAM);
 	LRESULT ChangeEditTCol(WPARAM, LPARAM);
 
     bool EnabCond(HWND contr)
@@ -72,6 +75,7 @@ class MainWindow : public BaseWindow<MainWindow>
         DWORD mask,
         HWND par_hwnd,
         int CntrlNum);
+    static void WSEValid(wchar_t* inp, int& m, int& s, int& M);
 
 public:
     MainWindow(): pFilePath(0), LSz(0), deg(0), cNo(-1), wCNo(-1), minL(0), stepL(1), MaxL(0), wShift(0),

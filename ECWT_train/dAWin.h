@@ -72,7 +72,6 @@ public:
         DiscardDeviceResources();
     }
     HRESULT GraphSetUp();
-    static void WSEValid(wchar_t* inp, int& m, int& s, int& M);
 
 private:
     PCWSTR  ClassName() const { return L"Drawing Area"; }

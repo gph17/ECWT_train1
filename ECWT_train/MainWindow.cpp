@@ -33,6 +33,8 @@ regStat MainWindow::registered = NEEDPLAIN;
 
 const COLORREF MainWindow::bgCol = RGB(180, 150, 150);
 const HBRUSH MainWindow::hbrBg = CreateSolidBrush(MainWindow::bgCol);
+const COLORREF MainWindow::bgColD = RGB(200, 200, 200);
+const HBRUSH MainWindow::hbrBgD = CreateSolidBrush(MainWindow::bgColD);
 
 void MainWindow::OnBrowse()
 {
@@ -72,11 +74,11 @@ void MainWindow::OnBrowse()
         if (csvCheck(pFilePath))
         {
             //display file path, inactivate Browse Button, activate other buttons
-            std::wstring str1 = pFilePath;
+            wstring str1 = pFilePath;
             wchar_t pStr2[128];
             GetWindowText(m_hwnd, pStr2, 128);
-            std::wstring str2 = pStr2;
-            std::wstring str3 = str2 + L": " + str1;
+            wstring str2 = pStr2;
+            wstring str3 = str2 + L": " + str1;
             SetWindowText(m_hwnd, str3.c_str());
             if (EnabCond(BgButton))
             {
@@ -111,6 +113,11 @@ void MainWindow::OnProcess(int butType)
     ShowWindow(demoButton, SW_HIDE);
     ShowWindow(BrButton, SW_HIDE);
     ShowWindow(AbButton, SW_SHOW);
+    SendMessage(WSEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
+    SendMessage(WSHEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
+    SendMessage(LSzEB, EM_SETREADONLY, (WPARAM)TRUE, NULL);
+    ListBox_Enable(degreeLB, FALSE);
+    ListBox_Enable(cWCondLB, FALSE);
     RECT rec;
     GetClientRect(GetAncestor(AbButton, GA_PARENT), &rec);
     int y = (9 * (rec.bottom - rec.top)) / 10;
@@ -467,11 +474,13 @@ BOOL CALLBACK MainWindow::PlaceCntrl(HWND hwnd, LPARAM lParam)
 
 LRESULT MainWindow::ChangeStatCol(WPARAM wParam, LPARAM lParam)
 {
-    if (((HWND)lParam == WSEdit) || ((HWND)lParam == WSHEdit))
-        return (LRESULT)GetSysColorBrush(COLOR_BTNFACE);
     HDC hdcStatic = (HDC)wParam;
+    if (((HWND)lParam == WSEdit) || ((HWND)lParam == WSHEdit) || ((HWND)lParam == LSzEB))
+    {
+        SetBkColor(hdcStatic, MainWindow::bgColD);
+        return (LRESULT)MainWindow::hbrBgD;
+    }
     SetBkColor(hdcStatic, MainWindow::bgCol);
-
     return (LRESULT)MainWindow::hbrBg;
 }
 
@@ -572,7 +581,7 @@ LRESULT MainWindow::OnDegChange(WPARAM wParam, LPARAM lParam)
     int LBId = LOWORD(wParam);
     UINT LB_MESS = HIWORD(wParam);
     wchar_t val[9];
-    if (LB_MESS == EN_CHANGE)
+    if (LB_MESS == EN_UPDATE)
     {
         Edit_GetText((HWND)lParam, val, 9);
         size_t len = wcslen(val);
@@ -683,19 +692,209 @@ LRESULT MainWindow::OnCmd(WPARAM wParam, LPARAM lParam)
         OnWSChange(wParam, lParam);
         break;
     }
+    case WSHEDIT:
+    {
+        OnWSHChange(wParam, lParam);
+        break;
+    }
     }
 	return 0;
 }
 
 LRESULT MainWindow::OnWSChange(WPARAM wParam, LPARAM lParam)
 {
-
-/*    int EBId = LOWORD(wParam);
-    UINT EB_MESS = HIWORD(wParam);
-    if (EB_MESS == LBN_SELCHANGE)
-        if ()
+    int code = HIWORD(wParam);
+    if (code == EN_UPDATE)
     {
+        HWND hwnd = (HWND)lParam;
+        int len = Edit_GetTextLength(hwnd);
+        if (len == 0)
+            return 0;
+        wchar_t* str = new wchar_t[len + 1];
+        Edit_GetText(hwnd, str, len + 1);
+        //ensure last char is acceptable
+        if ((!isdigit(str[len - 1])) && (str[len - 1] != L':'))
+        {
+            str[len - 1] = '\0';
+            Edit_SetText(hwnd, str);
+            SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+            return 0;
+        }
+        //last input digit or  colon
+        if (len == 1)
+        {
+            if ((str[0] == L':') || (str[0] == L'0'))
+            {
+                str[0] = '\0';
+                Edit_SetText(hwnd, str);
+                SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+                return 0;
+            }
+        }
+        //first input not 0 or colon
+        else
+        {
+            if (((str[len - 1] == L':') || (str[len - 1] == L'0')) && (str[len - 2] == L':'))
+            {
+                str[len - 1] = '\0';
+                Edit_SetText(hwnd, str);
+                SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+                return 0;
+            }
+        }
+        //last input not a colon or 0 preceded by a colon
+        if (str[len - 1] == ':')
+        {
+            int cCount = 0;
+            for (int i = 0; (i < (len - 1)) && (cCount < 2); i++)
+            {
+                if (str[i] == L':')
+                    cCount++;
+            }
+            if (cCount == 2)
+            {
+                str[len - 1] = '\0';
+                Edit_SetText(hwnd, str);
+                SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+                return 0;
+            }
 
+        }
+        //check completeness/compatibility with degree value
+        MainWindow::WSEValid(str, minL, stepL, MaxL);
+        if (minL && (MaxL >= minL))
+        {
+            //Enable WSHEdit label, make WSHedit writable, change WSEdit text colour to black
+            EnableWindow(WSHEditL, TRUE);
+            SendMessage(WSHEdit, EM_SETREADONLY, (WPARAM)FALSE, NULL);
+            WSEditRed = false;
+            ChangeEditTCol(wParam, lParam);
+        }
+        else
+        {
+            //Disable WSHEdit label, make WSHedit unwritable, change WSEdit text colour to red
+            EnableWindow(WSHEditL, FALSE);
+            SendMessage(WSHEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
+            WSEditRed = true;
+            ChangeEditTCol(wParam, lParam);
+        }
     }
-*/        return 0;
+    return 0;
+}
+
+LRESULT MainWindow::OnWSHChange(WPARAM wParam, LPARAM lParam)
+{
+    int code = HIWORD(wParam);
+    if (code == EN_UPDATE)
+    {
+        HWND hwnd = (HWND)lParam;
+        int len = Edit_GetTextLength(hwnd);
+        if (len == 0)
+            return 0;
+        wchar_t* str = new wchar_t[len + 1];
+        Edit_GetText(hwnd, str, len + 1);
+        //ensure last char is acceptable
+        if ((len == 1) && (!isdigit(str[0]) || (str[0] == L'0')))
+        {
+            str[len - 1] = '\0';
+            Edit_SetText(hwnd, str);
+            SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+            return 0;
+        }
+        if (!isdigit(str[0]))
+        {
+            str[len - 1] = '\0';
+            Edit_SetText(hwnd, str);
+            SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+            return 0;
+        }
+        wstringstream wst(str);
+        wst >> wShift;
+        //check compatibility with minL value
+        if (wShift <= minL)
+        {
+            //Change WSHEdit text colour to black, possibly enable demoButton and BgButton
+            WSHEditRed = false;
+            ChangeEditTCol(wParam, lParam);
+            if (EnabCond(demoButton))
+            {
+                EnableWindow(demoButton, TRUE);
+                EnableWindow(BgButton, TRUE);
+            }
+        }
+        else
+        {
+            //Change WSHEdit text colour to red, disable demoButton and BgButton
+            WSHEditRed = true;
+            ChangeEditTCol(wParam, lParam);
+			EnableWindow(demoButton, FALSE);
+			EnableWindow(BgButton, FALSE);
+        }
+    }
+    return 0;
+}
+
+void MainWindow::WSEValid(wchar_t* inp, int& m, int& s, int& M)
+{
+    wstringstream sInp(inp);
+    sInp >> m;
+    bool ebit = sInp.eof(), gbit = sInp.good();
+    if (!(ebit || gbit) || m <= 0)
+    {
+        m = 0;
+        s = 1;
+        M = 0;
+        return;
+    }
+    wchar_t ch;
+    sInp >> ch;
+    gbit = sInp.good();
+    if (!gbit || ch != L':')
+    {
+        m = 0;
+        s = 1;
+        M = 0;
+        return;
+    }
+    sInp >> s;
+    gbit = sInp.good(), ebit = sInp.eof();
+    if (!(gbit || ebit) || s < 1)
+    {
+        m = 0;
+        s = 1;
+        M = 0;
+        return;
+    }
+    sInp >> ch;
+    ebit = sInp.eof();
+    if (ebit)
+    {
+        M = s;
+        s = 1;
+        return;
+    }
+    gbit = sInp.good();
+    if (!gbit || ch != L':')
+    {
+        m = 0;
+        s = 1;
+        M = 0;
+        return;
+    }
+    sInp >> M;
+    gbit = sInp.good(), ebit = sInp.eof();
+    if (!(gbit || ebit) || M < (m + s) || M > 5e4)
+    {
+        m = 0;
+        s = 1;
+        M = 0;
+        return;
+    }
+    sInp >> ch;
+    ebit = sInp.eof();
+    if (ebit)
+        return;
+    m = 0;
+    s = 1;
+    M = 0;
 }
