@@ -150,6 +150,7 @@
     <ClCompile Include="drawable.cpp" />
     <ClCompile Include="ECWT.cpp" />
     <ClCompile Include="ECWT_train.cpp" />
+    <ClCompile Include="Lib.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="PWvlet.cpp" />
     <ClCompile Include="util.cpp" />

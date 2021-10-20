@@ -26,7 +26,9 @@ using namespace std;
 #define WSEDITLT 13
 #define WSHEDIT 14
 #define WSHEDITL 15
-
+#define GOFTH 16
+#define GOFTHL 17
+#define WGOFL 18
 
 regStat dAWin::registered = NEEDSPECIAL;
 regStat MainWindow::registered = NEEDPLAIN;
@@ -193,7 +195,7 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_GETMINMAXINFO:
 	{
 		LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
-		lpMMI->ptMinTrackSize.x = 800;
+		lpMMI->ptMinTrackSize.x = 900;
 		lpMMI->ptMinTrackSize.y = 600;
 		return 0;
 	}
@@ -282,6 +284,27 @@ LRESULT MainWindow::OnCreate()
             WS_VISIBLE | WS_VSCROLL | LBS_HASSTRINGS | LBS_NOTIFY,
             m_hwnd,
             CWLB)))
+            return(-1);
+
+        if (!(GoFThL = CreateCntrl(L"STATIC",
+            L"GoF \u0398",
+            WS_VISIBLE | SS_LEFT,
+            m_hwnd,
+            GOFTHL)))
+            return(-1);
+
+        if (!(WGoFL = CreateCntrl(L"STATIC",
+            L"Worst GoF: 1",
+            WS_VISIBLE | SS_LEFT,
+            m_hwnd,
+            WGOFL)))
+            return(-1);
+
+        if (!(GoFTh = CreateCntrl(L"EDIT",
+            NULL,
+            WS_VISIBLE | ES_LEFT,
+            m_hwnd,
+            GOFTH)))
             return(-1);
 
         //bottom row controls
@@ -426,6 +449,28 @@ BOOL CALLBACK MainWindow::PlaceCntrl(HWND hwnd, LPARAM lParam)
             width = 65;
             break;
         }
+        case GOFTHL:
+        {
+            x = 665;
+            y = yTop;
+            width = 65;
+            break;
+        }
+        case WGOFL:
+        {
+            x = 665;
+            y = yTop + 25;
+            width = 100;
+            break;
+        }
+        case GOFTH:
+        {
+            x = 745;
+            y = yTop;
+            width = 80;
+            height = 20;
+            break;
+        }
 
         //bottom row controls
         case BGBUTTON:
@@ -498,6 +543,15 @@ LRESULT MainWindow::ChangeEditTCol(WPARAM wParam, LPARAM lParam)
     if ((HWND)lParam == WSHEdit)
     {
         if (WSHEditRed)
+            SetTextColor((HDC)wParam, RGB(255, 0, 0));
+        else
+            SetTextColor((HDC)wParam, RGB(0, 0, 0));
+
+        return (LRESULT)GetSysColorBrush(COLOR_BTNFACE);
+    }
+    if ((HWND)lParam == GoFTh)
+    {
+        if (GFEditRed)
             SetTextColor((HDC)wParam, RGB(255, 0, 0));
         else
             SetTextColor((HDC)wParam, RGB(0, 0, 0));
@@ -694,7 +748,12 @@ LRESULT MainWindow::OnCmd(WPARAM wParam, LPARAM lParam)
     }
     case WSHEDIT:
     {
-        OnWSHChange(wParam, lParam);
+        OnWShChange(wParam, lParam);
+        break;
+    }
+    case GOFTH:
+    {
+        OnGTChange(wParam, lParam);
         break;
     }
     }
@@ -778,11 +837,13 @@ LRESULT MainWindow::OnWSChange(WPARAM wParam, LPARAM lParam)
             WSEditRed = true;
             ChangeEditTCol(wParam, lParam);
         }
+        if (str != 0)
+            delete[] str;
     }
     return 0;
 }
 
-LRESULT MainWindow::OnWSHChange(WPARAM wParam, LPARAM lParam)
+LRESULT MainWindow::OnWShChange(WPARAM wParam, LPARAM lParam)
 {
     int code = HIWORD(wParam);
     if (code == EN_UPDATE)
@@ -827,9 +888,79 @@ LRESULT MainWindow::OnWSHChange(WPARAM wParam, LPARAM lParam)
             //Change WSHEdit text colour to red, disable demoButton and BgButton
             WSHEditRed = true;
             ChangeEditTCol(wParam, lParam);
-			EnableWindow(demoButton, FALSE);
-			EnableWindow(BgButton, FALSE);
+            EnableWindow(demoButton, FALSE);
+            EnableWindow(BgButton, FALSE);
         }
+        if (str != 0)
+            delete[] str;
+    }
+    return 0;
+}
+
+LRESULT MainWindow::OnGTChange(WPARAM wParam, LPARAM lParam)
+{
+    int code = HIWORD(wParam);
+    if (code == EN_UPDATE)
+    {
+        HWND hwnd = (HWND)lParam;
+        int len = Edit_GetTextLength(hwnd);
+        if (len == 0)
+        {
+            GoFThresh = -1;
+            EnableWindow(demoButton, FALSE);
+            EnableWindow(BgButton, FALSE);
+            return 0;
+        }
+        wchar_t* str = new wchar_t[len + 1];
+        Edit_GetText(hwnd, str, len + 1);
+        //ensure last char is acceptable
+        if ((str[len - 1] != L'.') && !isdigit(str[len - 1]))
+        {
+            str[len - 1] = '\0';
+            Edit_SetText(hwnd, str);
+            SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+            return 0;
+        }
+        if ((len == 1) && (str[0] != L'.') && (str[0] != L'0'))
+        {
+            str[len - 1] = '\0';
+            Edit_SetText(hwnd, str);
+            SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+            return 0;
+        }
+        if (len== 2)
+            if ((str[0]== L'0') && (str[1]!= L'.'))
+			{
+				str[len - 1] = '\0';
+				Edit_SetText(hwnd, str);
+				SendMessage(hwnd, EM_SETSEL, (WPARAM)len, (LPARAM)len);
+				return 0;
+			}
+        if (str[len - 1] == L'.')
+        {
+            GFEditRed = true;
+            GoFThresh = -1;
+        }
+        else
+        {
+            GFEditRed = false;
+            wstringstream wst(str);
+            wst >> GoFThresh;
+        }
+        ChangeEditTCol(wParam, lParam);
+        //check compatibility with minL value
+		if (EnabCond(demoButton))
+		{
+			EnableWindow(demoButton, TRUE);
+			EnableWindow(BgButton, TRUE);
+		}
+        else
+        {
+            EnableWindow(demoButton, FALSE);
+            EnableWindow(BgButton, FALSE);
+        }
+        if (str != 0)
+            delete[] str;
     }
     return 0;
 }

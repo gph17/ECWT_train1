@@ -26,23 +26,6 @@ struct comp
 	}
 };
 
-void stats::update(double GoF, double WL)
-{
-	if (count)
-	{
-		muGoF = (count * muGoF + GoF) / (1.0 + count);
-		sig2GoF = count * sig2GoF / (1.0 + count) + (muGoF - GoF) * (muGoF - GoF) / count;
-		muWL = (count * muWL + WL) / (1.0 + count);
-		sig2WL = count * sig2WL / (1.0 + count) + (muWL - WL) * (muWL - WL) / count;
-	}
-	else
-	{
-		muGoF = GoF;
-		muWL = WL;
-	}
-	count++;
-}
-
 template <typename T>
 class Lib
 {
@@ -56,12 +39,38 @@ class Lib
 	double GoFThresh;
 
 public:
-	Lib<T>(int n1, int c, int w, double g, std::list<int>W, size_t MS) :
+	Lib<T>(int n1 = 0, int c = 0, int w = 0, double g = 0, std::list<int> W = std::list<int>(), size_t MS = 0) :
 		n(n1), cNo(c), wCNo(w), GoFThresh(g), LibStore(), WLs(W), prodStats(W.size()), MSize(MS)
 	{
 	}
 
-	Lib<T>(char const* src, int n1, int c, int w, double g, std::list<int>W, std::size_t, int WinStep = 1);
+	Lib<T>(char const* src, int n1, int c, int w, double g, std::list<int> W, std::size_t, int WinStep = 1);
+
+	void setDeg(int n1)
+	{
+		n = n1;
+	}
+	void setCNo(int c)
+	{
+		cNo = c;
+	}
+	void setWCNo(int w)
+	{
+		wCNo = w;
+	}
+	void setGoFThresh(double g)
+	{
+		GoFThresh = g;
+	}
+	void setWLs(std::list<int> W)
+	{
+		WLs = W;
+	}
+	void setMS(std::size_t M)
+	{
+		MSize = M;
+	}
+
 	void condAdd(const ECWT<T>&);
 	void dumpGoFStatsIn() const;
 	void dumpGoFStats() const

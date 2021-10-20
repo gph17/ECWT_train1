@@ -7,6 +7,9 @@
 
 #include "BaseWindow.h"
 #include "dAWin.h"
+#include "ECWT.h"
+#include "Lib.h"
+#include "PWvlet.h"
 
 class MainWindow : public BaseWindow<MainWindow>
 {
@@ -28,6 +31,9 @@ class MainWindow : public BaseWindow<MainWindow>
     HWND WSEditLT;
     HWND WSHEdit;
     HWND WSHEditL;
+    HWND GoFTh;
+	HWND GoFThL;
+	HWND WGoFL;
 
     static const COLORREF bgCol;
     static const HBRUSH hbrBg;
@@ -43,6 +49,9 @@ class MainWindow : public BaseWindow<MainWindow>
     int stepL;
     int MaxL;
     int wShift;
+    double GoFThresh;
+
+    Lib<ECWT<PWvlet>> lib;
 
     void    OnPaint();
     void    Resize();
@@ -54,14 +63,15 @@ class MainWindow : public BaseWindow<MainWindow>
     LRESULT OnDegChange(WPARAM, LPARAM);
     LRESULT OnLBNSel(WPARAM, LPARAM);
     LRESULT OnWSChange(WPARAM, LPARAM);
-    LRESULT OnWSHChange(WPARAM, LPARAM);
+    LRESULT OnGTChange(WPARAM, LPARAM);
+    LRESULT OnWShChange(WPARAM, LPARAM);
 	LRESULT ChangeEditTCol(WPARAM, LPARAM);
 
     bool EnabCond(HWND contr)
     {
         if ((contr == demoButton) || (contr == BgButton))
             return (pFilePath != 0) && (LSz != 0) && (deg != 0) && (cNo != -1) && (minL > (deg + 1)) &&
-            (MaxL >= minL) && (wShift > 0);
+            (MaxL >= minL) && (wShift > 0) && (GoFThresh>= 0) && (GoFThresh < 1);
         if ((contr == WSEdit) || (contr == WSEditLL) || (contr == WSEditLT))
             return (deg != 0);
         if ((contr == WSHEdit) || (contr == WSHEditL))
@@ -69,7 +79,7 @@ class MainWindow : public BaseWindow<MainWindow>
         return true;
     }
 
-    bool WSEditRed, WSHEditRed;
+    bool GFEditRed, WSEditRed, WSHEditRed;
     static HWND CreateCntrl(LPCWSTR wCName,
         LPCWSTR wTitle,
         DWORD mask,
@@ -79,7 +89,7 @@ class MainWindow : public BaseWindow<MainWindow>
 
 public:
     MainWindow(): pFilePath(0), LSz(0), deg(0), cNo(-1), wCNo(-1), minL(0), stepL(1), MaxL(0), wShift(0),
-        WSEditRed(true), WSHEditRed(true)
+        WSEditRed(true), WSHEditRed(true), GoFThresh(-1)
     {
     }
     static BOOL CALLBACK PlaceCntrl(HWND, LPARAM);
