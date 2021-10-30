@@ -118,6 +118,7 @@ void MainWindow::OnProcess(int butType)
     SendMessage(WSEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
     SendMessage(WSHEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
     SendMessage(LSzEB, EM_SETREADONLY, (WPARAM)TRUE, NULL);
+    SendMessage(GoFTh, EM_SETREADONLY, (WPARAM)TRUE, NULL);
     ListBox_Enable(degreeLB, FALSE);
     ListBox_Enable(cWCondLB, FALSE);
     RECT rec;
@@ -520,7 +521,7 @@ BOOL CALLBACK MainWindow::PlaceCntrl(HWND hwnd, LPARAM lParam)
 LRESULT MainWindow::ChangeStatCol(WPARAM wParam, LPARAM lParam)
 {
     HDC hdcStatic = (HDC)wParam;
-    if (((HWND)lParam == WSEdit) || ((HWND)lParam == WSHEdit) || ((HWND)lParam == LSzEB))
+    if (((HWND)lParam == WSEdit) || ((HWND)lParam == WSHEdit) || ((HWND)lParam == LSzEB) || ((HWND)lParam == GoFTh))
     {
         SetBkColor(hdcStatic, MainWindow::bgColD);
         return (LRESULT)MainWindow::hbrBgD;
