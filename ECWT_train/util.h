@@ -26,3 +26,4 @@ struct complexKey
 	}
 };
 
+Eigen::VectorXd xvals(int);

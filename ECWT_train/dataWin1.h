@@ -16,6 +16,12 @@ public:
 		return WLen;
 	}
 
+	double mean()
+	{
+		int N = getLen();
+		double Delta = 1.0 / (N - 1.0);
+		return Delta * (Vec.sum() - (Vec(0) + Vec(N - 1)) / 2);
+	}
 
 	void dump2Scrn()
 	{
@@ -23,6 +29,12 @@ public:
 	 }
 
 	double IP(const dataWin1&) const;
+	
+	Eigen::VectorXd points(int)
+	{
+		return Vec;
+	}
+
 
 	//friend classes - includes all instantiated wvlet classes
 	friend class dataWin;

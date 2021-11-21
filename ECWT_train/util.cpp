@@ -78,3 +78,14 @@ bool csvCheck(PWSTR fName)	//checks if fName is of a (non-trivial) csv file
 		return false;
 	return true;
 }
+
+VectorXd xvals(int N)
+{
+	VectorXd ret(N + 1);
+	double Delta = 1.0 / (N - 1.0);
+	ret(0) = 0;
+	for (int i = 1; i < N; i++)
+		ret(i) = (i - 0.5) * Delta;
+	ret(N) = 1.0;
+	return ret;
+}

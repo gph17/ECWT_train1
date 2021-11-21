@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include <Eigen/Dense>
 #include <vector>
 
 class drawable
 {
 public:
-	virtual std::vector<double> points(int) = 0;	//convert to values to be plotted against time
-	void draw(int);	//further input arguments needed to identify WHERE to draw
+	virtual Eigen::VectorXd points(int) = 0;	//convert to values to be plotted against time
 };
 

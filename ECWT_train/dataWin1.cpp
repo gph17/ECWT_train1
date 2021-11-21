@@ -16,9 +16,8 @@ double dataWin1::IP(const dataWin1& dW) const
 	}
 	double ret = (Vec(0) * dW.Vec(0) + Vec(WLen - 1) * dW.Vec(WLen - 1))/2;
 	double Delt = 1.0 / (WLen - 1.0);
-	int i;
-	for (i = 1; i < WLen - 1; i++)
+	for (int i = 1; i < WLen - 1; i++)
 		ret += Vec(i) * dW.Vec(i);
-	return ret;
+	return ret * Delt;
 
 };

@@ -3,6 +3,7 @@
 #include <shobjidl.h>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <windowsx.h>
 
 #include "MainWindow.h"
@@ -29,11 +30,13 @@ using namespace std;
 #define GOFTH 16
 #define GOFTHL 17
 #define WGOFL 18
+#define MEML 19
 
+#define  MATHDONE (WM_USER + 2)
 regStat dAWin::registered = NEEDSPECIAL;
 regStat MainWindow::registered = NEEDPLAIN;
 
-const COLORREF MainWindow::bgCol = RGB(180, 150, 150);
+const COLORREF MainWindow::bgCol = RGB(160, 150, 150);
 const HBRUSH MainWindow::hbrBg = CreateSolidBrush(MainWindow::bgCol);
 const COLORREF MainWindow::bgColD = RGB(200, 200, 200);
 const HBRUSH MainWindow::hbrBgD = CreateSolidBrush(MainWindow::bgColD);
@@ -125,19 +128,35 @@ void MainWindow::OnProcess(int butType)
     GetClientRect(GetAncestor(AbButton, GA_PARENT), &rec);
     int y = (9 * (rec.bottom - rec.top)) / 10;
     SetWindowPos(AbButton, HWND_TOP, 25, y, 100, 50, NULL);
-
-
     int i;
+    for (i = minL; i < MaxL; i += stepL)
+    {
+        if (lib.WLs.size() == 0)
+            lib.WLs.clear();
+		lib.WLs.push_back(i);
+    }
+
     if (butType == BGBUTTON)
     {
         //hide drawing areas
         for (i = 0; i < 3; i++)
             ShowWindow(graphs[i].m_hwnd, SW_HIDE);
+        thread t([this]()
+            {
+                lib.build(pFilePath, wShift, Window());
+                SendMessage(m_hwnd, MATHDONE, NULL, NULL);
+            });
+        t.detach();
     }
     else
         if (butType == DEBUTTON)
         {
-            //enable display of new ECWTs in drawing areas
+			thread t([this]()
+				{
+					lib.build(pFilePath, wShift, Window(), 200ms);
+                    SendMessage(m_hwnd, MATHDONE, NULL, NULL);
+				});
+			t.detach();
         }
 }
 
@@ -170,6 +189,18 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
+    case MATHDONE:
+    {
+        wchar_t pStr1[128];
+        GetWindowText(m_hwnd, pStr1, 128);
+        wstring str1 = pStr1;
+        wstring str2 = str1 + L" - DONE";
+        return SetWindowText(m_hwnd, str2.c_str());
+    }
+    case DISPLAYGVAL:
+        return OnDGVal(wParam);
+    case DISPLAYLSIZE:
+        return OnLGrow(wParam);
     case WM_CTLCOLOREDIT:
         return ChangeEditTCol(wParam, lParam);
     case WM_CTLCOLORSTATIC:
@@ -207,6 +238,23 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	}
 	return DefWindowProc(m_hwnd, uMsg, wParam, lParam);
+}
+
+LRESULT MainWindow::OnDGVal(WPARAM wparam)
+{
+    wchar_t buf[120];
+    double* tmp = reinterpret_cast<double*>(wparam);
+    std::swprintf(buf, 120, L"Worst GoF = %f", *tmp);
+    return SetWindowText(WGoFL, buf);
+}
+
+LRESULT MainWindow::OnLGrow(WPARAM wparam)
+{
+    wchar_t buf[120], buf0[120];
+    _itow_s((int)wparam, buf0, 10);
+    wcscpy_s(buf, L"Members: ");
+    wcscat_s(buf, buf0);
+    return SetWindowText(memL, buf);
 }
 
 LRESULT MainWindow::OnCreate()
@@ -295,7 +343,7 @@ LRESULT MainWindow::OnCreate()
             return(-1);
 
         if (!(WGoFL = CreateCntrl(L"STATIC",
-            L"Worst GoF: 1",
+            L"Worst GoF: 0",
             WS_VISIBLE | SS_LEFT,
             m_hwnd,
             WGOFL)))
@@ -368,6 +416,13 @@ LRESULT MainWindow::OnCreate()
             WS_VISIBLE | ES_LEFT | ES_READONLY,
             m_hwnd,
             WSHEDIT)))
+            return(-1);
+
+        if (!(memL = CreateCntrl(L"STATIC",
+            L"Members: 0",
+            WS_VISIBLE | ES_LEFT,
+            m_hwnd,
+            MEML)))
             return(-1);
         return 1;
     }
@@ -461,7 +516,8 @@ BOOL CALLBACK MainWindow::PlaceCntrl(HWND hwnd, LPARAM lParam)
         {
             x = 665;
             y = yTop + 25;
-            width = 100;
+            width = 200;
+            height = 40;
             break;
         }
         case GOFTH:
@@ -510,6 +566,13 @@ BOOL CALLBACK MainWindow::PlaceCntrl(HWND hwnd, LPARAM lParam)
         {
             x = 570;
             height = 20;
+            break;
+        }
+        case MEML:
+        {
+            x = 720;
+            width = 200;
+            height = 40;
             break;
         }
         }
@@ -589,8 +652,8 @@ LRESULT MainWindow::OnLBNSel(WPARAM wParam, LPARAM lParam)
         SendMessage((HWND)lParam, LB_GETTEXT, (WPARAM)ind, (LPARAM)val);
         if ((LBId == DELB) && (LB_MESS == LBN_SELCHANGE))
         {
-            deg = _wtoi(val);
-            set<pair<int, int>> vals = PWvlet::getValid(deg);
+            lib.n = _wtoi(val);
+            set<pair<int, int>> vals = PWvlet::getValid(lib.n);
             wchar_t cWStr[9];
             wchar_t num[4];
             ListBox_ResetContent(cWCondLB);
@@ -613,9 +676,9 @@ LRESULT MainWindow::OnLBNSel(WPARAM wParam, LPARAM lParam)
         {
             wstringstream vS(val);
             vS.ignore(1);
-            vS >> cNo;
+            vS >> lib.cNo;
             vS.ignore(2);
-            vS >> wCNo;
+            vS >> lib.wCNo;
             if (EnabCond(demoButton))
             {
                 EnableWindow(demoButton, TRUE);
@@ -682,10 +745,10 @@ LRESULT MainWindow::OnDegChange(WPARAM wParam, LPARAM lParam)
             wstringstream wS(val);
             double dLSz;
             wS >> dLSz;
-            LSz = (int)round(dLSz);
-        if (LSz > 5e4)
+            lib.LSize = (int)round(dLSz);
+        if (lib.LSize > 5e4)
         {
-            LSz = 0;
+            lib.LSize = 0;
             val[0] = '\0';
             SendMessage((HWND)lParam, WM_SETTEXT, NULL, (LPARAM)val);
             return 0;
@@ -907,7 +970,7 @@ LRESULT MainWindow::OnGTChange(WPARAM wParam, LPARAM lParam)
         int len = Edit_GetTextLength(hwnd);
         if (len == 0)
         {
-            GoFThresh = -1;
+            lib.GoFThresh = -1;
             EnableWindow(demoButton, FALSE);
             EnableWindow(BgButton, FALSE);
             return 0;
@@ -940,13 +1003,13 @@ LRESULT MainWindow::OnGTChange(WPARAM wParam, LPARAM lParam)
         if (str[len - 1] == L'.')
         {
             GFEditRed = true;
-            GoFThresh = -1;
+            lib.GoFThresh = -1;
         }
         else
         {
             GFEditRed = false;
             wstringstream wst(str);
-            wst >> GoFThresh;
+            wst >> lib.GoFThresh;
         }
         ChangeEditTCol(wParam, lParam);
         //check compatibility with minL value

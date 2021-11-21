@@ -19,7 +19,7 @@ class ECWT
 	int WLen;
 	int start;
 	double GoF;
-	std::string source;
+	std::wstring source;
 	void canonicise();
 	double signature[3];
 
@@ -45,7 +45,7 @@ public:
 	{
 	}
 
-	ECWT(dataWin, int n1, int c, int w, int st = 0, const char* = 0);
+	ECWT(dataWin, int n1, int c, int w, int st = 0, const wchar_t* = 0);
 
 	bool operator>(const ECWT& ECWT1) const
 	{
@@ -142,19 +142,25 @@ void ECWT<T>::canonicise()
 }
 
 template<typename T>
-ECWT<T>::ECWT(dataWin dW, int n1, int c, int w, int st, const char* sr) : n(n1), cNo(c), wCNo(w), iscanonical(false), 
+ECWT<T>::ECWT(dataWin dW, int n1, int c, int w, int st, const wchar_t* sr) : n(n1), cNo(c), wCNo(w), iscanonical(false), 
 wv1(dW.chan1, n1, c, w), wv2(dW.chan2, n1, c, w), wv3(dW.chan3, n1, c, w), WLen(dW.WLen), start(st)
 
 {
 	if (sr != 0)
 		source = sr;
+	/* GoF is the cosine of the angle between fitted wavelet and data - big is good */
+	double dNrm = dW.IP(dW) - dW.muMag2();
 	double nrm = IP(*this);
-	GoF = nrm - 2 * IP(dW);
-	GoF /= dW.IP(dW);
-	GoF += 1;
-	GoF = GoF > 1.0 ? 1.0 : GoF;
-	GoF = GoF < 0.0 ? 0.0 : GoF;
 	nrm = std::sqrt(nrm);
+	if (dNrm <= 1e-6)
+		GoF = 0;	//wavelets from near flat data ignored
+	else
+	{
+		dNrm = std::sqrt(dNrm);
+		GoF = IP(dW)/nrm/dNrm;
+		GoF = GoF > 1.0 ? 1.0 : GoF;
+		GoF = GoF < 0.0 ? 0.0 : GoF;	//rounding out of range corrected
+	}
 	wv1.para /= nrm;
 	wv2.para /= nrm;
 	wv3.para /= nrm;

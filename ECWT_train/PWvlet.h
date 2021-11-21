@@ -44,10 +44,10 @@ public:
 
 	double IP(const dataWin1&) const;	//L2 IP
 
-	std::vector<double> points(int);
-
 	PWvlet(int n1, int cNo1 = 0, int wNo1 = 0);
 	PWvlet(dataWin1, int n1, int cNo1 = 0, int wCNo1 = 0);
+
+	Eigen::VectorXd points(int);
 
 	friend class ECWT<PWvlet>;
 };

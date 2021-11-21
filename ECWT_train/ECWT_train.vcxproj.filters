@@ -33,9 +33,6 @@
     <ClCompile Include="ECWT_train.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="drawable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

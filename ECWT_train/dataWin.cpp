@@ -9,7 +9,7 @@ dataWin::dataWin(int SR1, int WL) : WLen(WL), chan1(SR1, WLen), chan2(SR1, WLen)
 {
 }
 
-dataWin::dataWin(int SR1, const int WL, ifstream& source):dataWin::dataWin(SR1, WL)
+dataWin::dataWin(int SR1, const int WL, ifstream& source): dataWin::dataWin(SR1, WL)
 {
 	char line[256];
 	char tmp[256];

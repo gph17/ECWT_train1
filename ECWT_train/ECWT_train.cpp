@@ -1,7 +1,3 @@
-#ifndef UNICODE
-#define UNICODE
-#endif 
-
 #include "DBMem.h"
 
 #include <atlbase.h>

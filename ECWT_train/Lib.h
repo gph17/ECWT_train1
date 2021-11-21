@@ -1,18 +1,23 @@
 #pragma once
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <list>
+#include <thread>
 #include <vector>
 
 #include "ECWT.h"
+
+#define DISPLAYLSIZE WM_USER
+#define DISPLAYGVAL (WM_USER + 1)
 
 class stats
 {
 public:
 	double muGoF, sig2GoF, muWL, sig2WL;
 	int count;
-	stats(int WNo) : muGoF(0), sig2GoF(0), count(0)
+	stats(int WNo) : muGoF(0), sig2GoF(0), muWL(0), sig2WL(0), count(0)
 	{
 	}
 	void update(double GoF, double WL);
@@ -26,6 +31,7 @@ struct comp
 	}
 };
 
+
 template <typename T>
 class Lib
 {
@@ -35,16 +41,19 @@ class Lib
 	int n;
 	int cNo;
 	int wCNo;
-	std::size_t MSize;
+	std::size_t LSize;
 	double GoFThresh;
 
 public:
-	Lib<T>(int n1 = 0, int c = 0, int w = 0, double g = 0, std::list<int> W = std::list<int>(), size_t MS = 0) :
-		n(n1), cNo(c), wCNo(w), GoFThresh(g), LibStore(), WLs(W), prodStats(W.size()), MSize(MS)
+	Lib<T>(int n1 = 0, int c = -1, int w = -1, double g = -1, std::list<int> W = std::list<int>(), size_t MS = 0) :
+		n(n1), cNo(c), wCNo(w), GoFThresh(g), LibStore(), WLs(W), prodStats(W.size()), LSize(MS)
 	{
 	}
 
-	Lib<T>(char const* src, int n1, int c, int w, double g, std::list<int> W, std::size_t, int WinStep = 1);
+	Lib<T>(wchar_t const* src, int n1, int c, int w, double g, std::list<int> W, std::size_t, int WinStep = 1);
+
+	void build(wchar_t const*, int,  HWND = NULL, 
+		std::chrono::duration<double> shFreq = std::chrono::duration<double>::zero());
 
 	void setDeg(int n1)
 	{
@@ -68,22 +77,23 @@ public:
 	}
 	void setMS(std::size_t M)
 	{
-		MSize = M;
+		LSize = M;
 	}
 
-	void condAdd(const ECWT<T>&);
+	bool condAdd(const ECWT<T>&);
 	void dumpGoFStatsIn() const;
 	void dumpGoFStats() const
 	{
 		std::cout << "GoF count = " << prodStats.count << ", mean = " << prodStats.muGoF << 
 			", variance = " << prodStats.sig2GoF << "\n\n";
 	}
+
+	friend class MainWindow;
 };
 
-
 template <typename T>
-Lib<T>::Lib(char const* src, int n1, int c, int w, double g, std::list<int> W, std::size_t MS, int WinStep) :
-	n(n1), cNo(c), wCNo(w), GoFThresh(g), LibStore(), WLs(W), prodStats(W.size()), MSize(MS)
+Lib<T>::Lib(wchar_t const* src, int n1, int c, int w, double g, std::list<int> W, std::size_t MS, int WinStep) :
+	n(n1), cNo(c), wCNo(w), GoFThresh(g), LibStore(), WLs(W), prodStats(W.size()), LSize(MS)
 {
 	std::ifstream ifs;
 	for (auto i : WLs)
@@ -116,30 +126,34 @@ Lib<T>::Lib(char const* src, int n1, int c, int w, double g, std::list<int> W, s
 }
 
 template<typename T>
-void Lib<T>::condAdd(const ECWT<T>& ECWT1)
+bool Lib<T>::condAdd(const ECWT<T>& ECWT1)
 {
-	if (ECWT1.GoF <= GoFThresh)
+	if (ECWT1.GoF >= GoFThresh)
 	{
-		if (LibStore.size() < MSize - 1)	//no check needed
+		if (LibStore.size() < LSize - 1)	//no check needed
 		{
 			LibStore.push_back(ECWT1);
-			return;
+			return true;
 		}
-		if (LibStore.size()== MSize - 1)	//no check needed
+		if (LibStore.size()== LSize - 1)	//no check needed
 		{
 			LibStore.push_back(ECWT1);
 			make_heap(LibStore.begin(), LibStore.end(), comp());
-			return;
+			return true;
 		}
 
-		if (ECWT1 < LibStore.back())
+		if (ECWT1 > LibStore.front())//LibStore is minimum heap
 		{
-				LibStore.pop_back();
-				LibStore.push_back(ECWT1);
-				push_heap(LibStore.begin(), LibStore.end(), comp());
-				return;
+			pop_heap(LibStore.begin(), LibStore.end(), comp());	//"decapitates" the heap, reorganises the remainder
+																//	into a new heap, places the head at the end
+				LibStore.pop_back();	//removes the old head
+				LibStore.push_back(ECWT1);	//adds the new member
+				push_heap(LibStore.begin(), LibStore.end(), comp());	//moves the last member up the tree until all
+																		//	members constitute a heap
+				return true;
 		}
 	}
+	return false;
 }
 
 template <typename T>
@@ -159,3 +173,53 @@ void Lib<T>::dumpGoFStatsIn() const
 	std::cout << "Included WLen mean = " << WSum / count <<
 		", variance = " << W2Sum / count - (WSum * WSum) / count / count << "\n\n";
 }
+
+template<typename T>
+void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::duration<double> shFreq)
+{
+	auto stime = std::chrono::system_clock::now();
+	std::ifstream ifs;
+	for (auto i : WLs)
+	{
+		int start = 0;
+		ifs.open(src);
+		dataWin dW(n, i, ifs);
+		ECWT<T> ECWT1(dW, n, cNo, wCNo, start, src);
+		prodStats.update(ECWT1.GoF, ECWT1.WLen);
+		if (condAdd(ECWT1) && hwnd && (shFreq > std::chrono::duration<double>::zero()) &&
+			((std::chrono::system_clock::now() - stime) > shFreq))
+		{
+			//do display stuff
+			SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
+			double GoF = LibStore.front().GoF;
+			WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
+			if (tmp)
+				SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+			stime = std::chrono::system_clock::now();
+		}
+		bool dataLeft = !ifs.eof();
+		while (dataLeft)
+		{
+			dW.maintain(ifs, WinStep);
+			dataLeft = !ifs.eof();
+			if (!dataLeft)
+				break;
+			start += WinStep;
+			ECWT<T> ECWT1(dW, n, cNo, wCNo, start, src);
+			prodStats.update(ECWT1.GoF, ECWT1.WLen);
+			if (condAdd(ECWT1) && hwnd && (shFreq > std::chrono::duration<double>::zero()) && 
+				((std::chrono::system_clock::now() - stime) > shFreq))
+			{
+				//do display stuff
+				SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
+				double GoF = LibStore.front().GoF;
+				WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
+				if (tmp)
+					SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+				stime = std::chrono::system_clock::now();
+			}
+		}
+		ifs.close();
+	}
+}
+

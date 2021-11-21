@@ -19,6 +19,7 @@ protected:
 public:
 	wvlet(int n1, int cNo1 = 0, int wNo1 = 0);
 	wvlet(dataWin1, int n1, int cNo1 = 0, int wNo1 = 0);
+	wvlet() = default;
 
 
 	int getn() const

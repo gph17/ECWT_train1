@@ -242,13 +242,13 @@ void PWvlet::maintainFTrans(int n1, int N)
 }
 
 /*provide override for drawable function*/
-vector<double> PWvlet::points(int N)	//convert to values to be plotted against time
+VectorXd PWvlet::points(int N)	//convert to values to be plotted against time
 {
-	VectorXd x = VectorXd::LinSpaced(N, 0.0, 1.0);
-	vector<double> ret;
+	VectorXd x = xvals(N);
+	VectorXd ret;
 	int i;
 	for (i = 0; i < N; i++)
-		ret.push_back(poly_eval(para, x(i)));
+		ret(i) = poly_eval(para, x(i));
 	return ret;
 }
 

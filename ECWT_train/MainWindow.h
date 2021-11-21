@@ -33,7 +33,8 @@ class MainWindow : public BaseWindow<MainWindow>
     HWND WSHEditL;
     HWND GoFTh;
 	HWND GoFThL;
-	HWND WGoFL;
+    HWND WGoFL;
+    HWND memL;
 
     static const COLORREF bgCol;
     static const HBRUSH hbrBg;
@@ -41,17 +42,12 @@ class MainWindow : public BaseWindow<MainWindow>
     static const HBRUSH hbrBgD;
 
     PWSTR pFilePath;
-    int LSz;
-    int deg;
-    int cNo;
-    int wCNo;
     int minL;
     int stepL;
     int MaxL;
     int wShift;
-    double GoFThresh;
 
-    Lib<ECWT<PWvlet>> lib;
+    Lib<PWvlet> lib;
 
     void    OnPaint();
     void    Resize();
@@ -66,16 +62,18 @@ class MainWindow : public BaseWindow<MainWindow>
     LRESULT OnGTChange(WPARAM, LPARAM);
     LRESULT OnWShChange(WPARAM, LPARAM);
 	LRESULT ChangeEditTCol(WPARAM, LPARAM);
+    LRESULT OnLGrow(WPARAM);
+    LRESULT OnDGVal(WPARAM);
 
     bool EnabCond(HWND contr)
     {
         if ((contr == demoButton) || (contr == BgButton))
-            return (pFilePath != 0) && (LSz != 0) && (deg != 0) && (cNo != -1) && (minL > (deg + 1)) &&
-            (MaxL >= minL) && (wShift > 0) && (GoFThresh>= 0) && (GoFThresh < 1);
+            return (pFilePath != 0) && (lib.LSize != 0) && (lib.n != 0) && (lib.cNo != -1) && (minL > (lib.n + 1)) &&
+            (MaxL >= minL) && (wShift > 0) && (lib.GoFThresh>= 0) && (lib.GoFThresh < 1);
         if ((contr == WSEdit) || (contr == WSEditLL) || (contr == WSEditLT))
-            return (deg != 0);
+            return (lib.n != 0);
         if ((contr == WSHEdit) || (contr == WSHEditL))
-            return (deg != 0) && (minL > (deg + 1)) && (MaxL >= minL);
+            return (lib.n != 0) && (minL > (lib.n + 1)) && (MaxL >= minL);
         return true;
     }
 
@@ -88,8 +86,8 @@ class MainWindow : public BaseWindow<MainWindow>
     static void WSEValid(wchar_t* inp, int& m, int& s, int& M);
 
 public:
-    MainWindow(): pFilePath(0), LSz(0), deg(0), cNo(-1), wCNo(-1), minL(0), stepL(1), MaxL(0), wShift(0),
-        WSEditRed(true), WSHEditRed(true), GoFThresh(-1)
+    MainWindow(): pFilePath(0), minL(0), stepL(1), MaxL(0), wShift(0),
+        WSEditRed(true), WSHEditRed(true)
     {
     }
     static BOOL CALLBACK PlaceCntrl(HWND, LPARAM);

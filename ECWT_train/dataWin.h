@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <Eigen/Dense>
 #include <fstream>
 #include <iostream>
@@ -16,6 +17,40 @@ class dataWin
 public:
 	dataWin(int, int);
 	dataWin(int, int, std::ifstream&);
+	Eigen::Vector3d mean()
+	{
+		Eigen::Vector3d ret;
+		ret(0) = chan1.mean();
+		ret(1) = chan2.mean();
+		ret(2) = chan3.mean();
+		return ret;
+	}
+	
+	double muMag2()
+	{
+		Eigen::Vector3d mu = mean();
+		return mu.transpose() * mu;
+	}
+
+	dataWin normalise()
+	{
+		dataWin ret(chan1.SR, WLen);
+		Eigen::Vector3d mu = mean();
+		ret.chan1.Vec = (chan1.Vec.array() - mu(0)).matrix();
+		ret.chan2.Vec = (chan2.Vec.array() - mu(1)).matrix();
+		ret.chan3.Vec = (chan3.Vec.array() - mu(2)).matrix();
+		double fac = sqrt(ret.IP(ret));
+		ret.chan1.Vec /= fac;
+		ret.chan2.Vec /= fac;
+		ret.chan3.Vec /= fac;
+		return ret;
+	}
+
+	double cordMax()
+	{
+		return std::max<double>(chan1.Vec.lpNorm<Eigen::Infinity>(),
+			std::max<double>(chan2.Vec.lpNorm<Eigen::Infinity>(), chan3.Vec.lpNorm<Eigen::Infinity>()));
+	}
 
 	bool maintain(std::ifstream&, int = 1);
 

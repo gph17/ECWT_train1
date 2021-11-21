@@ -147,7 +147,6 @@
     <ClCompile Include="dataWin.cpp" />
     <ClCompile Include="dataWin1.cpp" />
     <ClCompile Include="dAWin.cpp" />
-    <ClCompile Include="drawable.cpp" />
     <ClCompile Include="ECWT.cpp" />
     <ClCompile Include="ECWT_train.cpp" />
     <ClCompile Include="Lib.cpp" />
