@@ -46,7 +46,7 @@ class Lib
 
 public:
 	Lib<T>(int n1 = 0, int c = -1, int w = -1, double g = -1, std::list<int> W = std::list<int>(), size_t MS = 0) :
-		n(n1), cNo(c), wCNo(w), GoFThresh(g), LibStore(), WLs(W), prodStats(W.size()), LSize(MS)
+		n(n1), cNo(c), wCNo(w), GoFThresh(g), LibStore(), WLs(W), prodStats((int)(W.size())), LSize(MS)
 	{
 	}
 
@@ -179,6 +179,9 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 {
 	auto stime = std::chrono::system_clock::now();
 	std::ifstream ifs;
+	ECWT<T> last;
+	dataWin lastDW;
+	bool better;
 	for (auto i : WLs)
 	{
 		int start = 0;
@@ -186,15 +189,27 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 		dataWin dW(n, i, ifs);
 		ECWT<T> ECWT1(dW, n, cNo, wCNo, start, src);
 		prodStats.update(ECWT1.GoF, ECWT1.WLen);
-		if (condAdd(ECWT1) && hwnd && (shFreq > std::chrono::duration<double>::zero()) &&
-			((std::chrono::system_clock::now() - stime) > shFreq))
+		better = condAdd(ECWT1);
+		if (better)
 		{
+			last = ECWT1;
+			lastDW = dW;
+		}
+		if (better && hwnd && (shFreq > std::chrono::duration<double>::zero()))
+			{
 			//do display stuff
 			SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
 			double GoF = LibStore.front().GoF;
 			WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
-			if (tmp)
-				SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+			SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+			//normalise dataWin
+			dW = dW.normalise();
+			//send message to adjust y-scale for dataWin
+			dW.adjYScale(hwnd);
+			//send message to re-adjust y-scale for ECWT and draw wavelets
+			ECWT1.draw(hwnd);
+			//send message to draw dataWin1s
+			dW.draw(hwnd); 
 			stime = std::chrono::system_clock::now();
 		}
 		bool dataLeft = !ifs.eof();
@@ -207,19 +222,44 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 			start += WinStep;
 			ECWT<T> ECWT1(dW, n, cNo, wCNo, start, src);
 			prodStats.update(ECWT1.GoF, ECWT1.WLen);
-			if (condAdd(ECWT1) && hwnd && (shFreq > std::chrono::duration<double>::zero()) && 
+			better = condAdd(ECWT1);
+			if (better)
+			{
+				last = ECWT1;
+				lastDW = dW;
+			}
+			if (better && hwnd && (shFreq > std::chrono::duration<double>::zero()) &&
 				((std::chrono::system_clock::now() - stime) > shFreq))
 			{
 				//do display stuff
 				SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
 				double GoF = LibStore.front().GoF;
 				WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
-				if (tmp)
-					SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+				SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+				//normalise dataWin
+				dW = dW.normalise();
+				//send message to adjust y-scale for dataWin
+				dW.adjYScale(hwnd);
+				//send message to re-adjust y-scale for ECWT and draw wavelets
+				ECWT1.draw(hwnd);
+				//send message to draw dataWin1s
+				dW.draw(hwnd);
 				stime = std::chrono::system_clock::now();
 			}
 		}
 		ifs.close();
+		SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
+		double GoF = LibStore.front().GoF;
+		WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
+		SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+		//normalise dataWin
+		lastDW = lastDW.normalise();
+		//send message to adjust y-scale for dataWin
+		lastDW.adjYScale(hwnd);
+		//send message to re-adjust y-scale for ECWT and draw wavelets
+		last.draw(hwnd);
+		//send message to draw dataWin1s
+		lastDW.draw(hwnd);
 	}
 }
 

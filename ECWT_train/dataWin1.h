@@ -3,34 +3,41 @@
 #include <Eigen/Dense>
 #include <iostream>
 
-class dataWin1
+#include "drawable.h"
+
+#define DATAWDRAW (WM_USER + 5)
+
+class dataWin1: public drawable
 {
 	int SR;//per second
 	int WLen;
 	Eigen::VectorXd Vec;
+	UINT msg = DATAWDRAW;
 
 public:
 	dataWin1(int, int);
-	int getLen()
+	dataWin1() = default;
+
+	int getLen() const
 	{
 		return WLen;
 	}
 
-	double mean()
+	double mean() const
 	{
 		int N = getLen();
 		double Delta = 1.0 / (N - 1.0);
 		return Delta * (Vec.sum() - (Vec(0) + Vec(N - 1)) / 2);
 	}
 
-	void dump2Scrn()
+	void dump2Scrn() const
 	{
 		std::cout << "[\n" << Vec.transpose() << "\n]\n\n";
 	 }
 
 	double IP(const dataWin1&) const;
 	
-	Eigen::VectorXd points(int)
+	Eigen::VectorXd points(int = 0)
 	{
 		return Vec;
 	}

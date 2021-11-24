@@ -1,5 +1,3 @@
-#include "DBMem.h"
-
 #include <atlbase.h>
 #include <shobjidl.h>
 #include <windows.h>

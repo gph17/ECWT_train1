@@ -147,7 +147,6 @@
     <ClCompile Include="dataWin.cpp" />
     <ClCompile Include="dataWin1.cpp" />
     <ClCompile Include="dAWin.cpp" />
-    <ClCompile Include="ECWT.cpp" />
     <ClCompile Include="ECWT_train.cpp" />
     <ClCompile Include="Lib.cpp" />
     <ClCompile Include="MainWindow.cpp" />
@@ -160,7 +159,6 @@
     <ClInclude Include="dataWin.h" />
     <ClInclude Include="dataWin1.h" />
     <ClInclude Include="dAWin.h" />
-    <ClInclude Include="DBMem.h" />
     <ClInclude Include="drawable.h" />
     <ClInclude Include="ECWT.h" />
     <ClInclude Include="Lib.h" />

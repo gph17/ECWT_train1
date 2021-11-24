@@ -15,6 +15,8 @@ class MainWindow : public BaseWindow<MainWindow>
 {
     static  regStat registered;
 
+    float yScale;
+
     dAWin graphs[3];
     HWND demoButton;
     HWND BgButton;
@@ -64,6 +66,10 @@ class MainWindow : public BaseWindow<MainWindow>
 	LRESULT ChangeEditTCol(WPARAM, LPARAM);
     LRESULT OnLGrow(WPARAM);
     LRESULT OnDGVal(WPARAM);
+    LRESULT OnySc(LPARAM);
+    LRESULT OnyRsc(LPARAM);
+    LRESULT OnWvltDraw(LPARAM);
+    LRESULT OnDWDraw(LPARAM);
 
     bool EnabCond(HWND contr)
     {

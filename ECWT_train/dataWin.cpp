@@ -5,15 +5,21 @@
 using namespace Eigen;
 using namespace std;
 
-dataWin::dataWin(int SR1, int WL) : WLen(WL), chan1(SR1, WLen), chan2(SR1, WLen), chan3(SR1, WLen)
+dataWin::dataWin(int WL) : WLen(WL)
 {
 }
 
-dataWin::dataWin(int SR1, const int WL, ifstream& source): dataWin::dataWin(SR1, WL)
+dataWin::dataWin(int SR1, const int WL, ifstream& source): dataWin::dataWin(WL)
 {
 	char line[256];
 	char tmp[256];
 	int i, j;
+	for (i = 0; i < 3; i++)
+	{
+		chan[i].SR = SR1;
+		chan[i].WLen = WLen;
+		chan[i].Vec.setZero(WLen);
+	}
 	for (i = 0; i < WLen; i++)
 	{
 		source.getline(line, 256);//ignore header later
@@ -33,14 +39,13 @@ dataWin::dataWin(int SR1, const int WL, ifstream& source): dataWin::dataWin(SR1,
 			*ptr2 = '\0';
 			values[j] = stod(tmp);
 			ptr2 = tmp;
-		}
+		} 
 		while (*ptr1)
 			*(ptr2++) = *(ptr1++);
 		*ptr2 = '\0';
 		values[2] = stod(tmp);
-		chan1.Vec(i) = values[0];
-		chan2.Vec(i) = values[1];
-		chan3.Vec(i) = values[2];
+		for (int j = 0; j < 3; j++)
+			chan[j].Vec(i) = values[j];
 	}
 }
 
@@ -53,21 +58,42 @@ bool dataWin::maintain(std::ifstream& source, int k)
 	}
 	if (source.eof())
 		return false;
-	chan1.Vec(seq(0, WLen - k - 1)) = chan1.Vec(lastN(WLen - k));
-	chan2.Vec(seq(0, WLen - k - 1)) = chan2.Vec(lastN(WLen - k));
-	chan3.Vec(seq(0, WLen - k - 1)) = chan3.Vec(lastN(WLen - k));
 	int j;
 	for (j = 0; j < k; j++)
+		chan[j].Vec(seq(0, WLen - k - 1)) = chan[j].Vec(lastN(WLen - k));
+	for (j = 0; j < k; j++)
 	{
-		source >> chan1.Vec(WLen - k + j);
+		source >> chan[0].Vec(WLen - k + j);
 		source.ignore(10, ',');
 		if (source.eof())
 			return false;
-		source >> chan2.Vec(WLen - k + j);
+		source >> chan[1].Vec(WLen - k + j);
 		source.ignore(10, ',');
 		if (source.eof())
 			return false;
-		source >> chan3.Vec(WLen - k + j);
+		source >> chan[2].Vec(WLen - k + j);
 	}
 	return true;
+}
+
+void dataWin::adjYScale(HWND hwnd)
+{
+	float ySc = cordMax();
+	SendMessage(hwnd, ADJ_YSCL, NULL, reinterpret_cast<LPARAM>(&ySc));
+}
+
+void dataWin::draw(HWND hwnd)
+{
+	//find co-ordinate value vectors of wvlets in triplet
+	int i;
+	Eigen::VectorXd pwConst[3];
+	for (i = 0; i < 3; i++)
+		pwConst[i] = chan[i].points();
+	//find max abs co-ord value over vectors of triplet
+	double ySc = std::max<double>(pwConst[0].lpNorm<Eigen::Infinity>(),
+		std::max<double>(pwConst[1].lpNorm<Eigen::Infinity>(), pwConst[2].lpNorm<Eigen::Infinity>()));
+	//send message updating yscale of window
+	SendMessage(hwnd, ADJ_YRSCL, NULL, reinterpret_cast<LPARAM>(&ySc));
+	//send messages to draw value vectors
+	SendMessage(hwnd, DATAWDRAW, NULL, reinterpret_cast<LPARAM>(&pwConst));
 }

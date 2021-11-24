@@ -1,7 +1,7 @@
-#include "DBMem.h"
-
 #include "dAWin.h"
+#include "dataWin1.h"
 
+using namespace Eigen;
 ID2D1Factory* dAWin::m_pDirect2dFactory = NULL;
 IDWriteFactory* dAWin::m_pWriteFactory = NULL;
 IDWriteTextFormat* dAWin::pTextFormat = NULL;
@@ -51,6 +51,10 @@ LRESULT dAWin::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
     //    int i;
     switch (uMsg)
     {
+    case WVLTDRAW:
+        return OnWDraw(lParam);
+    case DATAWDRAW:
+        return OnDWDraw(lParam);
     case WM_CREATE:
         return OnCreate();
 
@@ -161,7 +165,7 @@ HRESULT dAWin::GraphSetUp()
             D2D1::Point2F(rtSize.width, y),
             m_pBlackBrush,
             0.5f);
-        DrawText();
+        drawText();
         hr = m_pRenderTarget->EndDraw();
     }
     if (hr == D2DERR_RECREATE_TARGET)
@@ -172,7 +176,7 @@ HRESULT dAWin::GraphSetUp()
     return hr;
 }
 
-void dAWin::DrawText()
+void dAWin::drawText()
 {
     int num = GetDlgCtrlID(m_hwnd) - 100;
     RECT rc;
@@ -194,6 +198,80 @@ void dAWin::DrawText()
     case 2:
         wcscpy_s(text, L"Channel 3");
     }
-    m_pRenderTarget->DrawText(text, wcslen(text), pTextFormat, layoutRect, m_pBlackBrush);
+    m_pRenderTarget->DrawText(text, (UINT32)(wcslen(text)), pTextFormat, layoutRect, m_pBlackBrush);
 }
 
+LRESULT dAWin::OnWDraw(LPARAM lParam)
+{
+    GraphSetUp();
+    VectorXd* curve = reinterpret_cast<VectorXd*>(lParam);
+    int N = (int)(curve->size());
+    HRESULT hr = CreateDeviceResources();
+    if (SUCCEEDED(hr))
+    {
+        m_pRenderTarget->BeginDraw();
+        m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
+        float x0 = rtSize.width / 50.f, X = rtSize.width - x0, Y = rtSize.height, y0 = Y/2.f;
+        for (int i = 0; i < (N - 1); i++)
+        {
+            float x1 = x0 + (i * X) / (N - 1.f), x2 = x0 + ((i + 1.f) * X) / (N - 1.f),
+                y1 = y0 - (Y * (float)((*curve)(i)) / 2.f), y2 = y0 - (Y * (float)((*curve)(i + 1)) / 2.f);
+            m_pRenderTarget->DrawLine(D2D1::Point2F(x1, y1), D2D1::Point2F(x2, y2),
+                m_pRedBrush,
+                0.5f);
+        }
+        hr = m_pRenderTarget->EndDraw();
+    }
+    if (hr == D2DERR_RECREATE_TARGET)
+    {
+        hr = S_OK;
+        DiscardDeviceResources();
+    }
+    return hr;
+}
+
+LRESULT dAWin::OnDWDraw(LPARAM lParam)
+{
+    VectorXd* pwConst = reinterpret_cast<VectorXd*>(lParam);
+    int N = (int)(pwConst->size());
+    HRESULT hr = CreateDeviceResources();
+    if (SUCCEEDED(hr))
+    {
+        m_pRenderTarget->BeginDraw();
+        m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
+        float x0 = rtSize.width / 50.f, X = rtSize.width - x0, Y = rtSize.height, y0 = Y / 2.f,
+            Delta = X / (N - 1.f), x1 = x0, x2 = x0 + Delta/2.f, y;
+        for (int i = 0; i < (N - 1); i++)
+        {
+            if (i == 0)
+            {
+            }
+            else
+                if (i == (N - 2))
+                {
+                    x1 = 1.f - Delta / 2.f;
+                    x2 = 1.f;
+                }
+                else
+                {
+                    x1 = x2;
+                    x2 += Delta;
+                    x2 += Delta;
+                }
+            y = y0 - Y * (float)(*pwConst)(i);
+            m_pRenderTarget->DrawLine(D2D1::Point2F(x1, y), D2D1::Point2F(x2, y),
+                m_pBlackBrush,
+                0.5f);
+        }
+
+        hr = m_pRenderTarget->EndDraw();
+    }
+    if (hr == D2DERR_RECREATE_TARGET)
+    {
+        hr = S_OK;
+        DiscardDeviceResources();
+    }
+    return hr;
+}

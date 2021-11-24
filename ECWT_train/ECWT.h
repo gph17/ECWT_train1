@@ -7,11 +7,12 @@
 
 #include "dataWin.h"
 #include "PWvlet.h"
+#include "wvlet.h"
 
 template<typename T>
 class ECWT
 {
-	T wv1, wv2, wv3;
+	T wv[3];
 	bool iscanonical;
 	int n;
 	int cNo;
@@ -26,12 +27,12 @@ class ECWT
 	/*make inner products*/
 	double IP(const ECWT& ECWT1) const
 	{
-		return wv1.IP(ECWT1.wv1) + wv2.IP(ECWT1.wv2) + wv3.IP(ECWT1.wv3);
+		return wv[0].IP(ECWT1.wv[0]) + wv[1].IP(ECWT1.wv[1]) + wv[2].IP(ECWT1.wv[2]);
 	}
 
 	double IP(const dataWin& dW) const
 	{
-		return wv1.IP(dW.chan1) + wv2.IP(dW.chan2) + wv3.IP(dW.chan3);
+		return wv[0].IP(dW.chan[0]) + wv[1].IP(dW.chan[1]) + wv[2].IP(dW.chan[2]);
 	}
 
 	double rotIP(ECWT&);
@@ -40,12 +41,22 @@ class ECWT
 	double rotShIP(dataWin&);
 
 public:
-	ECWT(int n1, int c, int w) : n(n1), cNo(c), wCNo(w), iscanonical(false),
-		wv1(n1, c, w), wv2(n1, c, w), wv3(c, w, n1), WLen(0)
+	ECWT(int n1, int c, int w) : n(n1), cNo(c), wCNo(w), iscanonical(false), WLen(0)
 	{
+		for (int i = 0; i < 3; i++)
+		{
+			wv[i].n = n;
+			wv[i].cNo = cNo;
+			wv[i].wCNo = wCNo;
+			wv[i].para.SetZero(n + 1);
+		}
 	}
 
 	ECWT(dataWin, int n1, int c, int w, int st = 0, const wchar_t* = 0);
+
+	ECWT() = default;
+
+	void draw(HWND, int = 0);
 
 	bool operator>(const ECWT& ECWT1) const
 	{
@@ -73,9 +84,9 @@ void ECWT<T>::canonicise()
 	if (n + 1 < H.cols())
 		H.conservativeResize(n + 1, n + 1);
 	Eigen::Matrix3d K;
-	Eigen::VectorXd vecs[] = { wv1.para, wv2.para, wv3.para };
-	Eigen::VectorXd nVecs[] = { Eigen::VectorXd.setZero(n), Eigen::VectorXd.setZero(n), 
-		Eigen::VectorXd.setZero(n)};
+	Eigen::VectorXd vecs[] = { wv[0].para, wv[1].para, wv[2].para };
+	Eigen::VectorXd nVecs[] = { Eigen::VectorXd.setZero(n + 1), Eigen::VectorXd.setZero(n + 1), 
+		Eigen::VectorXd.setZero(n + 1)};
 	int i, j;
 	for (i = 0; i < 3; i++)
 	{
@@ -133,19 +144,25 @@ void ECWT<T>::canonicise()
 	signature = eigval(idx);
 	eigvec = eigvec(Eigen::all, idx);
 	for (i = 0; i < 3; i++)
+	{
 		for (j = 0; j < 3; j++)
 			nVecs[i] += eigvec(i, j) * vecs[j];
-	wv1.para = nVecs[0];
-	wv2.para = nVecs[1];
-	wv3.para = nVecs[2];
+		wv[i].para = nVecs[i];
+	}
 	iscanonical = true;
 }
 
 template<typename T>
 ECWT<T>::ECWT(dataWin dW, int n1, int c, int w, int st, const wchar_t* sr) : n(n1), cNo(c), wCNo(w), iscanonical(false), 
-wv1(dW.chan1, n1, c, w), wv2(dW.chan2, n1, c, w), wv3(dW.chan3, n1, c, w), WLen(dW.WLen), start(st)
-
+WLen(dW.WLen), start(st)
 {
+	for (int i = 0; i < 3; i++)
+	{
+		wv[i].n = n;
+		wv[i].cNo = cNo;
+		wv[i].wCNo = wCNo;
+		wv[i].populate(dW.chan[i]);
+	}
 	if (sr != 0)
 		source = sr;
 	/* GoF is the cosine of the angle between fitted wavelet and data - big is good */
@@ -153,7 +170,7 @@ wv1(dW.chan1, n1, c, w), wv2(dW.chan2, n1, c, w), wv3(dW.chan3, n1, c, w), WLen(
 	double nrm = IP(*this);
 	nrm = std::sqrt(nrm);
 	if (dNrm <= 1e-6)
-		GoF = 0;	//wavelets from near flat data ignored
+		GoF = 0;	//indicates that wavelets from near flat data should be ignored
 	else
 	{
 		dNrm = std::sqrt(dNrm);
@@ -161,8 +178,30 @@ wv1(dW.chan1, n1, c, w), wv2(dW.chan2, n1, c, w), wv3(dW.chan3, n1, c, w), WLen(
 		GoF = GoF > 1.0 ? 1.0 : GoF;
 		GoF = GoF < 0.0 ? 0.0 : GoF;	//rounding out of range corrected
 	}
-	wv1.para /= nrm;
-	wv2.para /= nrm;
-	wv3.para /= nrm;
+	for (int i = 0; i < 3; i++)
+		wv[i].para /= nrm;
 }
 
+template<typename T>
+void ECWT<T>::draw(HWND hwnd, int N)
+{
+	if (N == 0)
+	{
+/*		RECT rc;
+		GetClientRect(m_hwnd, &rc);
+		*/
+		N = 100;//get width of graph later
+	}
+	//find co-ordinate value vectors of wvlets in triplet
+	int i;
+	Eigen::VectorXd curves[3];
+	for (i = 0; i < 3; i++)
+		curves[i] = wv[i].points(N);
+	//find max abs co-ord value over vectors of triplet
+	double ySc = std::max<double>(curves[0].lpNorm<Eigen::Infinity>(),
+		std::max<double>(curves[1].lpNorm<Eigen::Infinity>(), curves[2].lpNorm<Eigen::Infinity>()));
+	//send message updating yscale of window
+	SendMessage(hwnd, ADJ_YRSCL, NULL, reinterpret_cast<LPARAM>(&ySc));
+	//send messages to draw value vectors
+	SendMessage(hwnd, WVLTDRAW, NULL, reinterpret_cast<LPARAM>(&curves));
+}

@@ -4,25 +4,31 @@
 #include <Eigen/Dense>
 #include <fstream>
 #include <iostream>
+#include <wtypes.h>
 
 #include "dataWin1.h"
+
+#define ADJ_YSCL (WM_USER + 3)
+#define ADJ_YRSCL (WM_USER + 4)
 
 class dataWin
 {
 	int WLen;
-	dataWin1 chan1;
-	dataWin1 chan2;
-	dataWin1 chan3;
+	dataWin1 chan[3];
 
 public:
-	dataWin(int, int);
+	dataWin(int);
 	dataWin(int, int, std::ifstream&);
-	Eigen::Vector3d mean()
+	dataWin() = default;
+	
+	void adjYScale(HWND);
+	void draw(HWND hwnd);
+
+	Eigen::Vector3d mean() const
 	{
 		Eigen::Vector3d ret;
-		ret(0) = chan1.mean();
-		ret(1) = chan2.mean();
-		ret(2) = chan3.mean();
+		for (int i = 0; i < 3; i++)
+			ret(i) = chan[i].mean();
 		return ret;
 	}
 	
@@ -34,37 +40,38 @@ public:
 
 	dataWin normalise()
 	{
-		dataWin ret(chan1.SR, WLen);
+		dataWin ret(WLen);
 		Eigen::Vector3d mu = mean();
-		ret.chan1.Vec = (chan1.Vec.array() - mu(0)).matrix();
-		ret.chan2.Vec = (chan2.Vec.array() - mu(1)).matrix();
-		ret.chan3.Vec = (chan3.Vec.array() - mu(2)).matrix();
+		for (int i = 0; i < 3; i++)
+		{
+			ret.chan[i].Vec = (chan[i].Vec.array() - mu(i)).matrix();
+			ret.chan[i].WLen = WLen;
+		}
 		double fac = sqrt(ret.IP(ret));
-		ret.chan1.Vec /= fac;
-		ret.chan2.Vec /= fac;
-		ret.chan3.Vec /= fac;
+		for (int i = 0; i < 3; i++)
+			ret.chan[i].Vec /= fac;
 		return ret;
 	}
 
 	double cordMax()
 	{
-		return std::max<double>(chan1.Vec.lpNorm<Eigen::Infinity>(),
-			std::max<double>(chan2.Vec.lpNorm<Eigen::Infinity>(), chan3.Vec.lpNorm<Eigen::Infinity>()));
+		return std::max<double>(chan[0].Vec.lpNorm<Eigen::Infinity>(),
+			std::max<double>(chan[1].Vec.lpNorm<Eigen::Infinity>(), chan[2].Vec.lpNorm<Eigen::Infinity>()));
 	}
 
 	bool maintain(std::ifstream&, int = 1);
 
 	void dump2Scrn()
 	{
-		chan1.dump2Scrn();
-		chan2.dump2Scrn();
-		chan3.dump2Scrn();
+		chan[0].dump2Scrn();
+		chan[1].dump2Scrn();
+		chan[2].dump2Scrn();
 	}
 
 	double IP(const dataWin& dW) const
 	{
 		//assumed mapped to [0, 1)
-		return chan1.IP(chan1) + chan2.IP(chan2) + chan3.IP(chan3);
+		return chan[0].IP(chan[0]) + chan[1].IP(chan[1]) + chan[2].IP(chan[2]);
 	}
 
 	template <typename T>

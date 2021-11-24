@@ -1,5 +1,4 @@
-#include "DBMem.h"
-
+#include <Eigen/Dense>
 #include <shobjidl.h>
 #include <sstream>
 #include <string>
@@ -11,6 +10,7 @@
 #include "util.h"
 
 using namespace std;
+using namespace Eigen;
 
 #define BRBUTTON 1
 #define BGBUTTON 2
@@ -33,6 +33,8 @@ using namespace std;
 #define MEML 19
 
 #define  MATHDONE (WM_USER + 2)
+
+
 regStat dAWin::registered = NEEDSPECIAL;
 regStat MainWindow::registered = NEEDPLAIN;
 
@@ -153,7 +155,7 @@ void MainWindow::OnProcess(int butType)
         {
 			thread t([this]()
 				{
-					lib.build(pFilePath, wShift, Window(), 200ms);
+					lib.build(pFilePath, wShift, Window(), 500ms);
                     SendMessage(m_hwnd, MATHDONE, NULL, NULL);
 				});
 			t.detach();
@@ -189,6 +191,14 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
+    case WVLTDRAW:
+        return OnWvltDraw(lParam);
+    case DATAWDRAW:
+        return OnDWDraw(lParam);
+    case ADJ_YSCL:
+        return OnySc(lParam);
+    case ADJ_YRSCL:
+        return OnyRsc(lParam);//put this inside drawing function for wvlets
     case MATHDONE:
     {
         wchar_t pStr1[128];
@@ -272,7 +282,7 @@ LRESULT MainWindow::OnCreate()
                 WS_CHILD | WS_BORDER | WS_VISIBLE, NULL,
 				i * (chwidth + 10) + 10, (rec.bottom - rec.top) / 6, chwidth, cheight,
 				m_hwnd,
-				(HMENU)(100 + i));
+				(HMENU)(UINT64)(100 + i));
 			if (FAILED(graphs[i].GraphSetUp()))
 				exit(-1);
 		}
@@ -636,7 +646,7 @@ HWND MainWindow::CreateCntrl(LPCWSTR wCName,
         mask | WS_CHILD,
         0, 0, 0, 0,
         par_hwnd,
-        (HMENU)CntrlNum,
+        (HMENU)(UINT64)CntrlNum,
         (HINSTANCE)GetWindowLongPtr(par_hwnd, GWLP_HINSTANCE),
         NULL);
 }
@@ -775,9 +785,7 @@ LRESULT MainWindow::OnCmd(WPARAM wParam, LPARAM lParam)
     {
     case ABBUTTON:
     {
-        _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-        _CrtDumpMemoryLeaks();
-        exit(-1);//do something more sophisticated?
+        return SendMessage(m_hwnd, WM_DESTROY, NULL, NULL);
     }
     case BRBUTTON:
     {
@@ -1092,4 +1100,42 @@ void MainWindow::WSEValid(wchar_t* inp, int& m, int& s, int& M)
     m = 0;
     s = 1;
     M = 0;
+}
+
+LRESULT MainWindow::OnySc(LPARAM lparam)
+{
+    yScale = (float(*(reinterpret_cast<double*>(lparam))));
+    return 0;
+}
+
+LRESULT MainWindow::OnyRsc(LPARAM lparam)
+{
+    yScale = (float)(max(*(reinterpret_cast<double*>(lparam)), yScale));
+    return 0;
+}
+
+LRESULT MainWindow::OnWvltDraw(LPARAM lParam)
+{
+    VectorXd* curves = reinterpret_cast<VectorXd*>(lParam);
+    int i;
+    LRESULT res;
+    for (i = 0; i < 3; i++)
+    {
+        *(curves + i) /= yScale;
+        res = SendMessage(graphs[i].m_hwnd, WVLTDRAW, NULL, reinterpret_cast<LPARAM>(curves + i));
+    }
+    return res; //look at this later?
+}
+
+LRESULT MainWindow::OnDWDraw(LPARAM lParam)
+{
+    VectorXd* pwConst = reinterpret_cast<VectorXd*>(lParam);
+    int i;
+    LRESULT res;
+    for (i = 0; i < 3; i++)
+    {
+        *(pwConst + i) /= yScale;
+        res = SendMessage(graphs[i].m_hwnd, DATAWDRAW, NULL, reinterpret_cast<LPARAM>(pwConst + i));
+    }
+    return res;
 }

@@ -15,6 +15,7 @@
 class PWvlet :
     public wvlet, public drawable
 {
+	UINT msg = WVLTDRAW;
 public:
 	static Eigen::MatrixXd H;	//generate for highest value of n encountered - for lower values, it can be used in 
 								//	truncated form
@@ -46,7 +47,10 @@ public:
 
 	PWvlet(int n1, int cNo1 = 0, int wNo1 = 0);
 	PWvlet(dataWin1, int n1, int cNo1 = 0, int wCNo1 = 0);
+	PWvlet() = default;
 
+	void populate(const dataWin1&);
+	
 	Eigen::VectorXd points(int);
 
 	friend class ECWT<PWvlet>;

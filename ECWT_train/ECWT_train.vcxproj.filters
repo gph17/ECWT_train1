@@ -24,9 +24,6 @@
     <ClCompile Include="PWvlet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ECWT.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dataWin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -78,9 +75,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dAWin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DBMem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

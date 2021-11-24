@@ -6,6 +6,7 @@
 #pragma comment(lib, "d2d1")
 #include <d2d1helper.h>
 #include <dwrite.h>
+#include <Eigen/Dense>
 #include <malloc.h>
 #include <math.h>
 #include <memory>
@@ -15,6 +16,7 @@
 #include <windows.h>
 
 #include "BaseWindow.h"
+#include "wvlet.h"
 
 template<typename Interface>
 inline void SafeRelease(
@@ -72,6 +74,8 @@ public:
         DiscardDeviceResources();
     }
     HRESULT GraphSetUp();
+    LRESULT OnWDraw(LPARAM);
+    LRESULT OnDWDraw(LPARAM);
 
 private:
     PCWSTR  ClassName() const { return L"Drawing Area"; }
@@ -97,7 +101,7 @@ private:
 
     // Draw content.
     HRESULT OnRender();
-    void DrawText();
+    void drawText();
 
     // Resize the render target.
     void OnResize(UINT width, UINT height);

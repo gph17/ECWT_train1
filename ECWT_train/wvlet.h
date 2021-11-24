@@ -4,6 +4,8 @@
 
 #include "dataWin1.h"
 
+#define WVLTDRAW (WM_USER + 6)
+
 class wvlet//derive PWvlet initially, TWvlet later
 {
 protected:
@@ -20,6 +22,8 @@ public:
 	wvlet(int n1, int cNo1 = 0, int wNo1 = 0);
 	wvlet(dataWin1, int n1, int cNo1 = 0, int wNo1 = 0);
 	wvlet() = default;
+
+	virtual void populate(const dataWin1&) = 0;
 
 
 	int getn() const

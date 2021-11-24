@@ -75,6 +75,30 @@ PWvlet::PWvlet(dataWin1 dW, int n1, int cNo1, int wCNo1) :
 	para = G1 * (K * dW.Vec);
 }
 
+void PWvlet::populate(const dataWin1& dW)
+{
+	if (n - wCNo - cNo - 1 < 3)
+	{
+		cerr << "Fewer than 3 degrees of freedom after conditions\n";
+		exit(-1);
+	}
+	complexKey cK = { n, cNo, wCNo };
+	if (!valid.count(cK))
+	{
+		cerr << "Numerical problems with this combination of parameters\n";
+		exit(-1);
+	}
+	makeH(n);
+	makeW(n, wCNo);
+	makeG(n, cNo, wCNo);
+	maintainFTrans(n, dW.getLen());
+	MatrixXd G1 = G[cK];
+	MatrixXd K = fTrans[dW.getLen()];
+	K.conservativeResize(n + 1, dW.getLen());
+	para = G1 * (K * dW.Vec);
+}
+
+
 /*make static members*/
 void PWvlet::makeH(int n1)
 {
@@ -84,7 +108,7 @@ void PWvlet::makeH(int n1)
 		exit(-1);
 	}
 	int i, j;
-	int Hn = H.cols();
+	int Hn = (int)(H.cols());
 	if (Hn>= n1 + 1)
 		return;
 	if (Hn == 0)
@@ -120,8 +144,8 @@ void PWvlet::makeH(int n1)
 
 void PWvlet::makeW(int n1, int w1)
 {
-	int nW = W.cols();
-	int wRows = W.rows();
+	int nW = (int)(W.cols());
+	int wRows = (int)(W.rows());
 	if ((nW > n1) && (wRows>= w1))
 		return;
 	int i, j;
@@ -218,7 +242,7 @@ void PWvlet::maintainFTrans(int n1, int N)
 	if (fTrans.count(N))
 	{
 		F2tildeF = fTrans.at(N);
-		nr = F2tildeF.rows();
+		nr = (int)F2tildeF.rows();
 		if (nr == (n1 + 1))
 			return;
 		nc = N;
@@ -244,11 +268,10 @@ void PWvlet::maintainFTrans(int n1, int N)
 /*provide override for drawable function*/
 VectorXd PWvlet::points(int N)	//convert to values to be plotted against time
 {
-	VectorXd x = xvals(N);
-	VectorXd ret;
+	VectorXd ret(N);
 	int i;
 	for (i = 0; i < N; i++)
-		ret(i) = poly_eval(para, x(i));
+		ret(i) = poly_eval(para, i/(N - 1.0));
 	return ret;
 }
 
@@ -282,3 +305,4 @@ set<pair<int, int>> PWvlet::getValid(int deg)
 		}
 	return ret;
 }
+
