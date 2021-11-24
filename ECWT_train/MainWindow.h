@@ -15,28 +15,28 @@ class MainWindow : public BaseWindow<MainWindow>
 {
     static  regStat registered;
 
-    float yScale;
+    float yScale = 1.f;
 
     dAWin graphs[3];
-    HWND demoButton;
-    HWND BgButton;
-    HWND BrButton;
-    HWND AbButton;
-    HWND degreeLB;
-    HWND cWCondLB;
-    HWND degreeLBL;
-    HWND cWCondLBL;
-    HWND LSzEB;
-    HWND LSzEBL;
-    HWND WSEdit;
-    HWND WSEditLL;
-    HWND WSEditLT;
-    HWND WSHEdit;
-    HWND WSHEditL;
-    HWND GoFTh;
-	HWND GoFThL;
-    HWND WGoFL;
-    HWND memL;
+    HWND demoButton = 0;
+    HWND BgButton = 0;
+    HWND BrButton = 0;
+    HWND AbButton = 0;
+    HWND degreeLB = 0;
+    HWND cWCondLB = 0;
+    HWND degreeLBL = 0;
+    HWND cWCondLBL = 0;
+    HWND LSzEB = 0;
+    HWND LSzEBL = 0;
+    HWND WSEdit = 0;
+    HWND WSEditLL = 0;
+    HWND WSEditLT = 0;
+    HWND WSHEdit = 0;
+    HWND WSHEditL = 0;
+    HWND GoFTh = 0;
+	HWND GoFThL = 0;
+    HWND WGoFL = 0;
+    HWND memL = 0;
 
     static const COLORREF bgCol;
     static const HBRUSH hbrBg;
@@ -83,7 +83,7 @@ class MainWindow : public BaseWindow<MainWindow>
         return true;
     }
 
-    bool GFEditRed, WSEditRed, WSHEditRed;
+    bool GFEditRed = true, WSEditRed = true, WSHEditRed = true;
     static HWND CreateCntrl(LPCWSTR wCName,
         LPCWSTR wTitle,
         DWORD mask,

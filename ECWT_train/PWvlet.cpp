@@ -71,7 +71,7 @@ PWvlet::PWvlet(dataWin1 dW, int n1, int cNo1, int wCNo1) :
 	maintainFTrans(n, dW.getLen());
 	MatrixXd G1 = G[cK];
 	MatrixXd K = fTrans[dW.getLen()];
-	K.conservativeResize(n + 1, dW.getLen());
+	K.conservativeResize((UINT64)n + 1ULL, dW.getLen());
 	para = G1 * (K * dW.Vec);
 }
 
@@ -94,7 +94,7 @@ void PWvlet::populate(const dataWin1& dW)
 	maintainFTrans(n, dW.getLen());
 	MatrixXd G1 = G[cK];
 	MatrixXd K = fTrans[dW.getLen()];
-	K.conservativeResize(n + 1, dW.getLen());
+	K.conservativeResize(n + 1ULL, dW.getLen());
 	para = G1 * (K * dW.Vec);
 }
 
@@ -113,14 +113,14 @@ void PWvlet::makeH(int n1)
 		return;
 	if (Hn == 0)
 	{
-		H.resize(n1 + 1, n1 + 1);
+		H.resize(n1 + 1ULL, n1 + 1ULL);
 		for (i = 0; i <= n1; i++)
 			for (j = 0; j<= n1; j++)
 				H(i, j) = 1.0/ (1.0 + i + j);
 	}
 	else
 	{
-		H.conservativeResize(n1 + 1, n1 + 1);
+		H.conservativeResize(n1 + 1ULL, n1 + 1ULL);
 		for (i = 0; i <= n1; i++)
 			for (j = (i < Hn)? Hn: 0; j <= n1; j++)
 				H(i, j) = 1.0 / (1.0 + i + j);
@@ -130,7 +130,7 @@ void PWvlet::makeH(int n1)
 	for (i = 0; i < n1 + 1; i++)
 		for (j = i + 1; j < n1 + 1; j++)
 		{
-			Hitmp(i, j) = (i + j + 1LL) *
+			Hitmp(i, j) = (((UINT64)i + j) + 1ULL) *
 				comb(n1 + i + 1, n1 - j) * comb(n1 + j + 1, n1 - i) * comb(i + j, i) * comb(i + j, i);
 			if ((i + j)!= 2 * ((i + j)/2))
 				Hitmp(i, j)*= -1LL;
@@ -151,33 +151,34 @@ void PWvlet::makeW(int n1, int w1)
 	int i, j;
 	if (nW == 0)
 	{
-		W.setZero(w1, n1 + 1);
+		W.setZero(w1, n1 + 1ULL);
 		for (i = 0; i < w1; i++)
 		{
 			W(i, i) = 1LL;
 			for (j = i + 1; j < n1 + 1; j++)
-				W(i, j) = j * W(i, j - 1)/(j - i);
+				W(i, j) = j * W(i, j - 1ULL)/((long long)j - i);
 		}
 		return;
 	}
 	if (nW < n1 + 1)
 	{
 		//extend rows of W
-		W.conservativeResize(wRows, n1 + 1);
-		W.block(0, nW, wRows, n1 + 1 - nW) = Matrix<long long, Dynamic, Dynamic>::Zero(wRows, n1 + 1 - nW);
+		W.conservativeResize(wRows, n1 + 1ULL);
+		W.block(0, nW, wRows, n1 + 1 - nW) = Matrix<long long, Dynamic, Dynamic>::Zero(wRows, ((UINT64)n1 - nW) + 1ULL);
 		for (i = 0; i < wRows; i++)
 			for (j = nW; j < n1 + 1; j++)
-				W(i, j) = j * W(i, j - 1) / (j - i);
+				W(i, j) = j * W(i, (UINT64)j - 1) / ((long long)j - i);
 	}
 	if (wRows < w1)
 	{
-		W.conservativeResize(w1, n1 + 1);
-		W.block(wRows, 0, w1 - wRows, n1 + 1) = Matrix<long long, Dynamic, Dynamic>::Zero(w1 - wRows, n1 + 1);
+		W.conservativeResize(w1, n1 + 1ULL);
+		W.block(wRows, 0, w1 - wRows, n1 + 1) = 
+			Matrix<long long, Dynamic, Dynamic>::Zero((UINT64)w1 - wRows, n1 + 1ULL);
 		for (i = wRows; i < w1; i++)
 		{
 			W(i, i) = 1;
 			for (j = i + 1; j < n1 + 1; j++)
-				W(i, j) = j * W(i, j - 1) / (j - i);
+				W(i, j) = j * W(i, j - 1ULL) / ((long long)j - i);
 		}
 	}
 }
@@ -188,11 +189,13 @@ void PWvlet::makeG(int n1, int c1, int w1)
 	if (G.count(cK))
 		return;
 	int k;
-	Matrix<double, Dynamic, Dynamic> B = Matrix<double, Dynamic, Dynamic>::Zero(c1 + w1 + 1, n1 + 1);
+	Matrix<double, Dynamic, Dynamic> B =
+		Matrix<double, Dynamic, Dynamic>::Zero((UINT64)c1 + (UINT64)w1 + 1ULL, n1 + 1ULL);
 	MatrixXd Hinv = Hi[n1].cast<double>();
 	if ((c1!= 0) || (w1!= 0))
 	{
-		Matrix<long long, Dynamic, Dynamic> B0 = Matrix<long long, Dynamic, Dynamic>::Zero(c1 + w1, n1 + 1);
+		Matrix<long long, Dynamic, Dynamic> B0 = 
+			Matrix<long long, Dynamic, Dynamic>::Zero((UINT64)c1 + (UINT64)w1, n1 + 1ULL);
 
 		B0.block(0, 0, c1, c1) = Matrix<long long, Dynamic, Dynamic>::Identity(c1, c1);
 		B0.block(c1, 0, w1, n1 + 1) = W.block(0, 0, w1, n1 + 1);
@@ -220,7 +223,7 @@ void PWvlet::makeG(int n1, int c1, int w1)
 		BHiBi.block(1, 1, c1 + w1, c1 + w1) = BHiBi.block(1, 1, c1 + w1, c1 + w1) +
 			(vec * vec.transpose()) / (1 - B0HiB0i(0, 0));
 
-		G[cK] = Hinv * (MatrixXd::Identity(n1 + 1, n1 + 1) - B.transpose() * (BHiBi * (B * Hinv)));
+		G[cK] = Hinv * (MatrixXd::Identity(n1 + 1ULL, n1 + 1ULL) - B.transpose() * (BHiBi * (B * Hinv)));
 	}
 	else
 	{
@@ -249,7 +252,7 @@ void PWvlet::maintainFTrans(int n1, int N)
 	}
 	else
 		nr = nc = 0;
-	F2tildeF.conservativeResize(n1 + 1, N);
+	F2tildeF.conservativeResize(n1 + 1ULL, N);
 	int i, j;
 	double Delta = 1.0 / (N - 1.0);
 	if (nc == 0)
@@ -260,7 +263,7 @@ void PWvlet::maintainFTrans(int n1, int N)
 		for (j = 1; j < N - 1; j++)
 			F2tildeF(i, j) = (pow((j - 0.5) * Delta, i + 1) -
 				pow((j - 1.5) * Delta, i + 1)) / (1.0 + i);
-		F2tildeF(i, N - 1) = (1 - pow(1 - 0.5 * Delta, i + 1)) / (1.0 + i);
+		F2tildeF(i, N - 1ULL) = (1 - pow(1 - 0.5 * Delta, i + 1)) / (1.0 + i);
 	}
 	fTrans[N] = F2tildeF;
 }
@@ -280,7 +283,7 @@ VectorXd PWvlet::points(int N)	//convert to values to be plotted against time
 double PWvlet::IP(const dataWin1& dW) const	//L2 IP
 {
 	MatrixXd K = fTrans[dW.WLen];
-	K.conservativeResize(n + 1, dW.WLen);
+	K.conservativeResize(n + 1ULL, dW.WLen);
 	return dW.Vec.transpose() * (K.transpose() * para);
 }
 

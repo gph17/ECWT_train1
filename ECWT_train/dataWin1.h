@@ -15,8 +15,7 @@ class dataWin1: public drawable
 	UINT msg = DATAWDRAW;
 
 public:
-	dataWin1(int, int);
-	dataWin1() = default;
+	dataWin1(int = 0, int = 0);
 
 	int getLen() const
 	{
@@ -27,7 +26,7 @@ public:
 	{
 		int N = getLen();
 		double Delta = 1.0 / (N - 1.0);
-		return Delta * (Vec.sum() - (Vec(0) + Vec(N - 1)) / 2);
+		return Delta * (Vec.sum() - (Vec(0) + Vec((UINT64)N - 1)) / 2);
 	}
 
 	void dump2Scrn() const

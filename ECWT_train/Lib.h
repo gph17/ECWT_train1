@@ -248,18 +248,21 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 			}
 		}
 		ifs.close();
-		SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
-		double GoF = LibStore.front().GoF;
-		WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
-		SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
-		//normalise dataWin
-		lastDW = lastDW.normalise();
-		//send message to adjust y-scale for dataWin
-		lastDW.adjYScale(hwnd);
-		//send message to re-adjust y-scale for ECWT and draw wavelets
-		last.draw(hwnd);
-		//send message to draw dataWin1s
-		lastDW.draw(hwnd);
+		if (hwnd)
+		{
+			SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
+			double GoF = LibStore.front().GoF;
+			WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
+			SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+			//normalise dataWin
+			lastDW = lastDW.normalise();
+			//send message to adjust y-scale for dataWin
+			lastDW.adjYScale(hwnd);
+			//send message to re-adjust y-scale for ECWT and draw wavelets
+			last.draw(hwnd);
+			//send message to draw dataWin1s
+			lastDW.draw(hwnd);
+		}
 	}
 }
 

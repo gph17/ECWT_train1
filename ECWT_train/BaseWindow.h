@@ -71,9 +71,9 @@ BOOL BaseWindow<DERIVED_TYPE>::Create(PCWSTR lpWindowName,
     HWND hWndParent,
     HMENU hMenu)
 {
-    if (DERIVED_TYPE::registered != DONE)
+    if (DERIVED_TYPE::registered != regStat::DONE)
     {
-        if (DERIVED_TYPE::registered == NEEDPLAIN)
+        if (DERIVED_TYPE::registered == regStat::NEEDPLAIN)
         {
             WNDCLASS wc = { 0 };
 
@@ -109,7 +109,7 @@ BOOL BaseWindow<DERIVED_TYPE>::Create(PCWSTR lpWindowName,
 
             }
         }
-        DERIVED_TYPE::registered = DONE;
+        DERIVED_TYPE::registered = regStat::DONE;
     }
 
     m_hwnd = CreateWindowEx(dwExStyle, ClassName(), lpWindowName, dwStyle, x, y,

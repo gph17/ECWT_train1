@@ -35,8 +35,8 @@ using namespace Eigen;
 #define  MATHDONE (WM_USER + 2)
 
 
-regStat dAWin::registered = NEEDSPECIAL;
-regStat MainWindow::registered = NEEDPLAIN;
+regStat dAWin::registered = regStat::NEEDSPECIAL;
+regStat MainWindow::registered = regStat::NEEDPLAIN;
 
 const COLORREF MainWindow::bgCol = RGB(160, 150, 150);
 const HBRUSH MainWindow::hbrBg = CreateSolidBrush(MainWindow::bgCol);
@@ -174,7 +174,7 @@ void MainWindow::OnPaint()
 
 void MainWindow::Resize()
 {
-    if (dAWin::registered == DONE)
+    if (dAWin::registered == regStat::DONE)
     {
         int i;
         for (i = 0; i < 3; i++)
@@ -261,6 +261,8 @@ LRESULT MainWindow::OnDGVal(WPARAM wparam)
 LRESULT MainWindow::OnLGrow(WPARAM wparam)
 {
     wchar_t buf[120], buf0[120];
+    buf[119] = 0;
+    buf0[119] = 0;
     _itow_s((int)wparam, buf0, 10);
     wcscpy_s(buf, L"Members: ");
     wcscat_s(buf, buf0);
@@ -278,11 +280,12 @@ LRESULT MainWindow::OnCreate()
         int chwidth = (rec.right - rec.left - 40) / 3;
         for (i = 0; i < 3; i++)
         {
+            int i1 = i + 100;
             (&graphs[i])->Create(L"dAWin",
                 WS_CHILD | WS_BORDER | WS_VISIBLE, NULL,
 				i * (chwidth + 10) + 10, (rec.bottom - rec.top) / 6, chwidth, cheight,
 				m_hwnd,
-				(HMENU)(UINT64)(100 + i));
+				(HMENU)(UINT64)i1);
 			if (FAILED(graphs[i].GraphSetUp()))
 				exit(-1);
 		}
@@ -659,13 +662,16 @@ LRESULT MainWindow::OnLBNSel(WPARAM wParam, LPARAM lParam)
     if (LB_MESS == LBN_SELCHANGE)
     {
         int ind = LOWORD(SendMessage((HWND)lParam, LB_GETCURSEL, NULL, NULL));
-        SendMessage((HWND)lParam, LB_GETTEXT, (WPARAM)ind, (LPARAM)val);
+        LRESULT Len = SendMessage((HWND)lParam, LB_GETTEXT, (WPARAM)ind, (LPARAM)val);
+        val[Len] = 0;
         if ((LBId == DELB) && (LB_MESS == LBN_SELCHANGE))
         {
             lib.n = _wtoi(val);
             set<pair<int, int>> vals = PWvlet::getValid(lib.n);
             wchar_t cWStr[9];
             wchar_t num[4];
+            cWStr[8] = 0;
+            num[3] = 0;
             ListBox_ResetContent(cWCondLB);
             for (auto item : vals)
             {
@@ -841,7 +847,7 @@ LRESULT MainWindow::OnWSChange(WPARAM wParam, LPARAM lParam)
         int len = Edit_GetTextLength(hwnd);
         if (len == 0)
             return 0;
-        wchar_t* str = new wchar_t[len + 1];
+        wchar_t* str = new wchar_t[len + 1ULL];
         Edit_GetText(hwnd, str, len + 1);
         //ensure last char is acceptable
         if ((!isdigit(str[len - 1])) && (str[len - 1] != L':'))
@@ -924,7 +930,7 @@ LRESULT MainWindow::OnWShChange(WPARAM wParam, LPARAM lParam)
         int len = Edit_GetTextLength(hwnd);
         if (len == 0)
             return 0;
-        wchar_t* str = new wchar_t[len + 1];
+        wchar_t* str = new wchar_t[len + 1ULL];
         Edit_GetText(hwnd, str, len + 1);
         //ensure last char is acceptable
         if ((len == 1) && (!isdigit(str[0]) || (str[0] == L'0')))
@@ -983,7 +989,7 @@ LRESULT MainWindow::OnGTChange(WPARAM wParam, LPARAM lParam)
             EnableWindow(BgButton, FALSE);
             return 0;
         }
-        wchar_t* str = new wchar_t[len + 1];
+        wchar_t* str = new wchar_t[(UINT64)len + 1ULL];
         Edit_GetText(hwnd, str, len + 1);
         //ensure last char is acceptable
         if ((str[len - 1] != L'.') && !isdigit(str[len - 1]))

@@ -8,7 +8,7 @@
 
 class drawable
 {
-	UINT msg;
+	UINT msg = 0;
 public:
 	virtual Eigen::VectorXd points(int) = 0;	//convert to values to be plotted against time
 	virtual void draw(HWND hwnd, Eigen::VectorXd vals)

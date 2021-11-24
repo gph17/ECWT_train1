@@ -187,6 +187,7 @@ void dAWin::drawText()
         static_cast<FLOAT>(w),
         static_cast<FLOAT>(h));
     wchar_t text[10];
+    text[9] = 0;
     switch (num)
     {
     case 0:
@@ -216,7 +217,7 @@ LRESULT dAWin::OnWDraw(LPARAM lParam)
         for (int i = 0; i < (N - 1); i++)
         {
             float x1 = x0 + (i * X) / (N - 1.f), x2 = x0 + ((i + 1.f) * X) / (N - 1.f),
-                y1 = y0 - (Y * (float)((*curve)(i)) / 2.f), y2 = y0 - (Y * (float)((*curve)(i + 1)) / 2.f);
+                y1 = y0 - (Y * (float)((*curve)(i)) / 2.f), y2 = y0 - (Y * (float)((*curve)((UINT64)i + 1)) / 2.f);
             m_pRenderTarget->DrawLine(D2D1::Point2F(x1, y1), D2D1::Point2F(x2, y2),
                 m_pRedBrush,
                 0.5f);

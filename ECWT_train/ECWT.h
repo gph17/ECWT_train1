@@ -54,7 +54,10 @@ public:
 
 	ECWT(dataWin, int n1, int c, int w, int st = 0, const wchar_t* = 0);
 
-	ECWT() = default;
+	ECWT() : GoF(0.0), WLen(0), cNo(0), wCNo(0), iscanonical(false), n(0), start(0), signature{ 0.0, 0.0, 0.0}
+	{
+
+	}
 
 	void draw(HWND, int = 0);
 

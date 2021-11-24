@@ -19,9 +19,8 @@ protected:
 	virtual double IP(const dataWin1&) const = 0;	//L2 IP - analogue in ECWT too
 
 public:
-	wvlet(int n1, int cNo1 = 0, int wNo1 = 0);
+	wvlet(int n1 = 0, int cNo1 = 0, int wNo1 = 0);
 	wvlet(dataWin1, int n1, int cNo1 = 0, int wNo1 = 0);
-	wvlet() = default;
 
 	virtual void populate(const dataWin1&) = 0;
 

@@ -12,7 +12,7 @@ long long gcd(long long, long long);
 
 bool csvCheck(PWSTR);
 
-enum regStat { NEEDPLAIN, NEEDSPECIAL, DONE };
+enum class regStat { NEEDPLAIN, NEEDSPECIAL, DONE };
 
 struct complexKey
 {

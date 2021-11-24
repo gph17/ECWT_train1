@@ -17,9 +17,8 @@ class dataWin
 	dataWin1 chan[3];
 
 public:
-	dataWin(int);
+	dataWin(int = 0);
 	dataWin(int, int, std::ifstream&);
-	dataWin() = default;
 	
 	void adjYScale(HWND);
 	void draw(HWND hwnd);

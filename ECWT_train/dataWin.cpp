@@ -63,22 +63,23 @@ bool dataWin::maintain(std::ifstream& source, int k)
 		chan[j].Vec(seq(0, WLen - k - 1)) = chan[j].Vec(lastN(WLen - k));
 	for (j = 0; j < k; j++)
 	{
-		source >> chan[0].Vec(WLen - k + j);
+		int idx = WLen - k + j;
+		source >> chan[0].Vec(idx);
 		source.ignore(10, ',');
 		if (source.eof())
 			return false;
-		source >> chan[1].Vec(WLen - k + j);
+		source >> chan[1].Vec(idx);
 		source.ignore(10, ',');
 		if (source.eof())
 			return false;
-		source >> chan[2].Vec(WLen - k + j);
+		source >> chan[2].Vec(idx);
 	}
 	return true;
 }
 
 void dataWin::adjYScale(HWND hwnd)
 {
-	float ySc = cordMax();
+	float ySc = (float)cordMax();
 	SendMessage(hwnd, ADJ_YSCL, NULL, reinterpret_cast<LPARAM>(&ySc));
 }
 
