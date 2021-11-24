@@ -101,7 +101,6 @@ public:
     PCWSTR  ClassName() const { return L"ECWT Unsupervised Training"; }
     LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
     friend BOOL BaseWindow::Create(PCWSTR, DWORD, DWORD, int, int, int, int, HWND, HMENU);
-    friend COLORREF SetBkColor(HDC, COLORREF);
 };
 
 
