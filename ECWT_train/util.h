@@ -12,6 +12,8 @@ long long gcd(long long, long long);
 
 bool csvCheck(PWSTR);
 
+double KahanSum(double* terms, int Len);
+
 enum class regStat { NEEDPLAIN, NEEDSPECIAL, DONE };
 
 struct complexKey

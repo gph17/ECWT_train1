@@ -32,21 +32,21 @@ void remfac(Vector<long long, Dynamic>& v)
 	int i;
 	for (i = 0; i < v.size(); i++)
 		if (GDiv == 0)
-		{
-			if (v(i) != 0)
-				GDiv = v(i);
-		}
+			GDiv = v(i);
 		else
 			if (v(i) != 0)
 				GDiv = gcd(GDiv, v(i));
-	if (GDiv == 0)
+	if ((GDiv == 0) || (GDiv == 1))
 		return;
-	for (i = 0; i < v.size(); i++)
-		v(i) /= GDiv;
+	v /= GDiv;
 }
 
 long long gcd(long long m, long long n)
 {
+	if (m == 0)
+		return n;
+	if (n == 0)
+		return m;
 	long long r = m % n;
 	if (r == 0)
 		return n;
@@ -88,4 +88,20 @@ VectorXd xvals(int N)
 		ret(i) = (i - 0.5) * Delta;
 	ret(N) = 1.0;
 	return ret;
+}
+
+double KahanSum(double* terms, int Len)
+{
+	double sum = 0.0, c = 0.0;
+
+	for (int i = 0; i < Len; i++)
+	{
+		double y = terms[i] - c;
+		volatile double t = sum + y;
+		volatile double z = t - sum;
+		c = z - y;
+		sum = t;
+	}
+
+	return sum;
 }

@@ -208,7 +208,7 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         return SetWindowText(m_hwnd, str2.c_str());
     }
     case DISPLAYGVAL:
-        return OnDGVal(wParam);
+        return OnDGVal(wParam, lParam);
     case DISPLAYLSIZE:
         return OnLGrow(wParam);
     case WM_CTLCOLOREDIT:
@@ -250,11 +250,14 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(m_hwnd, uMsg, wParam, lParam);
 }
 
-LRESULT MainWindow::OnDGVal(WPARAM wparam)
+LRESULT MainWindow::OnDGVal(WPARAM wparam, LPARAM lparam)
 {
     wchar_t buf[120];
     double* tmp = reinterpret_cast<double*>(wparam);
-    std::swprintf(buf, 120, L"Worst GoF = %f", *tmp);
+    if (*(reinterpret_cast<int*>(lparam))== 1)
+        std::swprintf(buf, 120, L"Best GoF = %f", *tmp);
+    else
+        std::swprintf(buf, 120, L"Worst GoF = %f", *tmp);
     return SetWindowText(WGoFL, buf);
 }
 

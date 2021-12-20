@@ -220,7 +220,7 @@ LRESULT dAWin::OnWDraw(LPARAM lParam)
                 y1 = y0 - (Y * (float)((*curve)(i)) / 2.f), y2 = y0 - (Y * (float)((*curve)((UINT64)i + 1)) / 2.f);
             m_pRenderTarget->DrawLine(D2D1::Point2F(x1, y1), D2D1::Point2F(x2, y2),
                 m_pRedBrush,
-                0.5f);
+                1.f);
         }
         hr = m_pRenderTarget->EndDraw();
     }
@@ -264,7 +264,7 @@ LRESULT dAWin::OnDWDraw(LPARAM lParam)
             y = y0 - Y * (float)(*pwConst)(i);
             m_pRenderTarget->DrawLine(D2D1::Point2F(x1, y), D2D1::Point2F(x2, y),
                 m_pBlackBrush,
-                0.5f);
+                1.f);
         }
 
         hr = m_pRenderTarget->EndDraw();

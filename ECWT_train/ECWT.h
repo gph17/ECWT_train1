@@ -56,7 +56,6 @@ public:
 
 	ECWT() : GoF(0.0), WLen(0), cNo(0), wCNo(0), iscanonical(false), n(0), start(0), signature{ 0.0, 0.0, 0.0}
 	{
-
 	}
 
 	void draw(HWND, int = 0);
@@ -189,12 +188,7 @@ template<typename T>
 void ECWT<T>::draw(HWND hwnd, int N)
 {
 	if (N == 0)
-	{
-/*		RECT rc;
-		GetClientRect(m_hwnd, &rc);
-		*/
 		N = 100;//get width of graph later
-	}
 	//find co-ordinate value vectors of wvlets in triplet
 	int i;
 	Eigen::VectorXd curves[3];

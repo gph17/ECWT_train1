@@ -179,9 +179,11 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 {
 	auto stime = std::chrono::system_clock::now();
 	std::ifstream ifs;
-	ECWT<T> last;
-	dataWin lastDW;
+	ECWT<T> last, best;
+	dataWin lastDW, bestDW;
+	double bestGoF = 0;
 	bool better;
+	int mM = 0;
 	for (auto i : WLs)
 	{
 		int start = 0;
@@ -194,6 +196,12 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 		{
 			last = ECWT1;
 			lastDW = dW;
+			if (ECWT1.GoF > bestGoF)
+			{
+				best = ECWT1;
+				bestDW = dW;
+				bestGoF = ECWT1.GoF;
+			}
 		}
 		if (better && hwnd && (shFreq > std::chrono::duration<double>::zero()))
 			{
@@ -201,7 +209,7 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 			SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
 			double GoF = LibStore.front().GoF;
 			WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
-			SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+			SendMessage(hwnd, DISPLAYGVAL, tmp, reinterpret_cast<LPARAM>(&mM));
 			//normalise dataWin
 			dW = dW.normalise();
 			//send message to adjust y-scale for dataWin
@@ -227,6 +235,12 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 			{
 				last = ECWT1;
 				lastDW = dW;
+				if (ECWT1.GoF > bestGoF)
+				{
+					best = ECWT1;
+					bestDW = dW;
+					bestGoF = ECWT1.GoF;
+				}
 			}
 			if (better && hwnd && (shFreq > std::chrono::duration<double>::zero()) &&
 				((std::chrono::system_clock::now() - stime) > shFreq))
@@ -235,7 +249,7 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 				SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
 				double GoF = LibStore.front().GoF;
 				WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
-				SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+				SendMessage(hwnd, DISPLAYGVAL, tmp, reinterpret_cast<LPARAM>(&mM));
 				//normalise dataWin
 				dW = dW.normalise();
 				//send message to adjust y-scale for dataWin
@@ -248,12 +262,12 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 			}
 		}
 		ifs.close();
-		if (hwnd)
+		if (hwnd && !LibStore.empty())
 		{
 			SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
 			double GoF = LibStore.front().GoF;
 			WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
-			SendMessage(hwnd, DISPLAYGVAL, tmp, NULL);
+			SendMessage(hwnd, DISPLAYGVAL, tmp, reinterpret_cast <LPARAM>(&mM));
 			//normalise dataWin
 			lastDW = lastDW.normalise();
 			//send message to adjust y-scale for dataWin
@@ -263,6 +277,21 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 			//send message to draw dataWin1s
 			lastDW.draw(hwnd);
 		}
+	}
+	mM = 1;
+	if (hwnd && !LibStore.empty())
+	{
+		sort(LibStore.begin(), LibStore.end());
+		WPARAM tmp = reinterpret_cast<WPARAM>(&bestGoF);
+		SendMessage(hwnd, DISPLAYGVAL, tmp, reinterpret_cast <LPARAM>(&mM));
+		//normalise dataWin
+		bestDW = bestDW.normalise();
+		//send message to adjust y-scale for dataWin
+		bestDW.adjYScale(hwnd);
+		//send message to re-adjust y-scale for ECWT and draw wavelets
+		best.draw(hwnd);
+		//send message to draw dataWin1s
+		bestDW.draw(hwnd);
 	}
 }
 

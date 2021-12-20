@@ -18,8 +18,8 @@ map<int, Matrix<long long, Dynamic, Dynamic>> PWvlet::Hi;
 
 map<int, MatrixXd> PWvlet::fTrans = map<int, MatrixXd>();
 
-const set<complexKey> PWvlet::valid = { {4, 0, 0}, {4, 0, 1},
-	{5, 0, 0}, {5, 0, 1}, {5, 0, 2}, {5, 1, 1},
+const set<complexKey> PWvlet::valid = { {4, 0, 0},
+	{5, 0, 0}, {5, 0, 1},
 	{6, 0, 0}, {6, 0, 1}, {6, 0, 2}, {6, 0, 3}, {6, 1, 1}, {6, 1, 2},
 	{7, 0, 0}, {7, 0, 1}, {7, 0, 2}, {7, 0, 3}, {7, 1, 1}, {7, 1, 2}, {7, 1, 3}, {7, 2, 2},
 	{8, 0, 0}, {8, 0, 1}, {8, 0, 2}, {8, 0, 3}, {8, 1, 1}, {8, 1, 2}, {8, 1, 3}, {8, 2, 2},
@@ -107,78 +107,104 @@ void PWvlet::makeH(int n1)
 		cerr << "Maximum size of n before long long wraps in calculation of H^{-1} is 16\n";
 		exit(-1);
 	}
-	int i, j;
-	int Hn = (int)(H.cols());
-	if (Hn>= n1 + 1)
+	long long i, j;
+	long long Hn = H.cols();
+	if (Hn>= n1 + 1LL)
 		return;
 	if (Hn == 0)
 	{
-		H.resize(n1 + 1ULL, n1 + 1ULL);
+		H.resize(n1 + 1LL, n1 + 1LL);
 		for (i = 0; i <= n1; i++)
 			for (j = 0; j<= n1; j++)
 				H(i, j) = 1.0/ (1.0 + i + j);
 	}
 	else
 	{
-		H.conservativeResize(n1 + 1ULL, n1 + 1ULL);
+		H.conservativeResize(n1 + 1LL, n1 + 1LL);
 		for (i = 0; i <= n1; i++)
 			for (j = (i < Hn)? Hn: 0; j <= n1; j++)
 				H(i, j) = 1.0 / (1.0 + i + j);
 	}
 	Matrix<long long, Dynamic, Dynamic> Hitmp(n1 + 1, n1 + 1);
 	Hitmp.setZero();
-	for (i = 0; i < n1 + 1; i++)
-		for (j = i + 1; j < n1 + 1; j++)
+	Hitmp(0, 1) = -(n1 * (n1 + 1) * (n1 + 1) * (n1 + 2)) / 2;
+	Hitmp(1, 0) = Hitmp(0, 1);
+	long long nfac, dfac, g;
+	for (i = 0; i < n1; i++)
+	{
+		if (i > 0)
 		{
-			Hitmp(i, j) = (((UINT64)i + j) + 1ULL) *
-				comb(n1 + i + 1, n1 - j) * comb(n1 + j + 1, n1 - i) * comb(i + j, i) * comb(i + j, i);
-			if ((i + j)!= 2 * ((i + j)/2))
-				Hitmp(i, j)*= -1LL;
+			nfac = (n1 + 1LL + i) * (n1 + 2LL + i) * ((long long)n1 - i) * (n1 + 1LL - i);
+			dfac = i * (i + 1LL) * (i + 1LL) * (i + 1LL);
+			g = gcd(nfac, dfac);
+			nfac /= g;
+			dfac /= g;
+			Hitmp(i, i + 1LL) = nfac * (Hitmp(i - 1LL, i) / dfac);
+			Hitmp(i + 1LL, i) = Hitmp(i, i + 1LL);
+		}
+		for (j = i + 2; j <= n1; j++)
+		{
+			nfac = (i + j) * (n1 + 1LL - j) * (n1 + 1LL + j);
+			dfac = j * j * (i + j + 1LL);
+			g = gcd(nfac, dfac);
+			nfac /= g;
+			dfac /= g;
+			Hitmp(i, j) = -nfac * (Hitmp(i, j - 1LL)/dfac);
 			Hitmp(j, i) = Hitmp(i, j);
 		}
-	for (i = 0; i < n1 + 1; i++)
-		Hitmp(i, i) = (2LL * i + 1LL) * 
-			comb(n1 + i + 1, n1 - i) * comb(n1 + i + 1, n1 - i) * comb(2 * i, i) * comb(2 * i, i);
+	}
+	Hitmp(0, 0) = (n1 + 1LL) * (n1 + 1LL);
+	for (i = 1; i < n1 + 1LL; i++)
+	{
+		nfac = (2LL * i - 1LL) * (n1 + 1LL - i) * (n1 + 1LL + i) * (n1 + 1LL - i) * (n1 + 1LL + i);
+		dfac = (2LL * i + 1LL) * i * i * i * i;
+		g = gcd(nfac, dfac);
+		nfac /= g;
+		dfac /= g;
+		Hitmp(i, i) = nfac * (Hitmp(i - 1LL, i - 1LL) /dfac);
+	}
 	Hi[n1] = Hitmp;
 }
 
 void PWvlet::makeW(int n1, int w1)
 {
-	int nW = (int)(W.cols());
-	int wRows = (int)(W.rows());
+	long long nW = W.cols(), wRows = W.rows();
 	if ((nW > n1) && (wRows>= w1))
 		return;
-	int i, j;
+	long long i, j;
 	if (nW == 0)
 	{
 		W.setZero(w1, n1 + 1ULL);
 		for (i = 0; i < w1; i++)
 		{
-			W(i, i) = 1LL;
-			for (j = i + 1; j < n1 + 1; j++)
-				W(i, j) = j * W(i, j - 1ULL)/((long long)j - i);
+			if (i == 0)
+				W(0, 1) = 1;
+			else
+				W(i, i + 1LL) = (i + 1LL) * W(i - 1LL, i);
+			for (j = i + 2; j < n1 + 1LL; j++)
+				W(i, j) = j * W(i, j - 1LL)/(j - i);
 		}
 		return;
 	}
-	if (nW < n1 + 1)
+	if (nW < n1 + 1LL)
 	{
 		//extend rows of W
 		W.conservativeResize(wRows, n1 + 1ULL);
-		W.block(0, nW, wRows, n1 + 1 - nW) = Matrix<long long, Dynamic, Dynamic>::Zero(wRows, ((UINT64)n1 - nW) + 1ULL);
+		W.block(0, nW, wRows, n1 + 1LL - nW) = Matrix<long long, Dynamic, Dynamic>::Zero(wRows, (n1 - nW) + 1ULL);
 		for (i = 0; i < wRows; i++)
-			for (j = nW; j < n1 + 1; j++)
-				W(i, j) = j * W(i, (UINT64)j - 1) / ((long long)j - i);
+			for (j = nW; j < n1 + 1LL; j++)
+				W(i, j) = j * W(i, j - 1LL) / (j - i);
 	}
 	if (wRows < w1)
 	{
 		W.conservativeResize(w1, n1 + 1ULL);
 		W.block(wRows, 0, w1 - wRows, n1 + 1) = 
-			Matrix<long long, Dynamic, Dynamic>::Zero((UINT64)w1 - wRows, n1 + 1ULL);
+			Matrix<long long, Dynamic, Dynamic>::Zero(w1 - wRows, n1 + 1ULL);
 		for (i = wRows; i < w1; i++)
 		{
 			W(i, i) = 1;
-			for (j = i + 1; j < n1 + 1; j++)
-				W(i, j) = j * W(i, j - 1ULL) / ((long long)j - i);
+			for (j = i + 1; j < n1 + 1LL; j++)
+				W(i, j) = j * W(i, j - 1ULL) / (j - i);
 		}
 	}
 }
@@ -188,49 +214,140 @@ void PWvlet::makeG(int n1, int c1, int w1)
 	complexKey cK = {n1, c1, w1};
 	if (G.count(cK))
 		return;
-	int k;
-	Matrix<double, Dynamic, Dynamic> B =
-		Matrix<double, Dynamic, Dynamic>::Zero((UINT64)c1 + (UINT64)w1 + 1ULL, n1 + 1ULL);
+
 	MatrixXd Hinv = Hi[n1].cast<double>();
-	if ((c1!= 0) || (w1!= 0))
-	{
-		Matrix<long long, Dynamic, Dynamic> B0 = 
-			Matrix<long long, Dynamic, Dynamic>::Zero((UINT64)c1 + (UINT64)w1, n1 + 1ULL);
-
-		B0.block(0, 0, c1, c1) = Matrix<long long, Dynamic, Dynamic>::Identity(c1, c1);
-		B0.block(c1, 0, w1, n1 + 1) = W.block(0, 0, w1, n1 + 1);
-		B0.block(c1, 0, w1, c1) = Matrix<long long, Dynamic, Dynamic>::Zero(w1, c1);
-		for (k = c1; k < c1 + w1; k++)
-		{
-			Vector<long long, Dynamic> tmpv = B0.row(k);
-			remfac(tmpv);
-			B0.block(k, 0, 1, n1 + 1) = tmpv.transpose();
-		}
-
-		B.block(1, 0, c1 + w1, n1 + 1) = B0.cast<double>();
-		for (k = 0; k < n1 + 1; k++)
-			B(0, k) = 1.0 / (1.0 + k);
-
-		MatrixXd B0HiB0 = (B0 * (Hi[n1] * B0.transpose())).cast<double>();
-		MatrixXd B0HiB0i = B0HiB0.inverse();
-		B0HiB0i = (B0HiB0i + B0HiB0i.transpose()) / 2;	//enforce symmetry
-		MatrixXd BHiBi(c1 + w1 + 1, c1 + w1 + 1);
-		BHiBi(0, 0) = 1 / (1 - B0HiB0i(0, 0));
-		BHiBi.block(1, 0, c1 + w1, 1) = B0HiB0i.block(0, 0, c1 + w1, 1) / (1 - B0HiB0i(0, 0));
-		BHiBi.block(0, 1, 1, c1 + w1) = B0HiB0i.block(0, 0, 1, c1 + w1) / (1 - B0HiB0i(0, 0));
-		BHiBi.block(1, 1, c1 + w1, c1 + w1) = B0HiB0i;
-		VectorXd vec = B0HiB0i.col(0);
-		BHiBi.block(1, 1, c1 + w1, c1 + w1) = BHiBi.block(1, 1, c1 + w1, c1 + w1) +
-			(vec * vec.transpose()) / (1 - B0HiB0i(0, 0));
-
-		G[cK] = Hinv * (MatrixXd::Identity(n1 + 1ULL, n1 + 1ULL) - B.transpose() * (BHiBi * (B * Hinv)));
-	}
-	else
+	
+	if ((c1 == 0) && (w1 == 0))
 	{
 		MatrixXd tmp = Hinv;
-		tmp(0, 0)-= 1.0;
+		tmp(0, 0) -= 1.0;
 		G[cK] = tmp;
+		return;
 	}
+	
+	int i;
+	Matrix<double, Dynamic, Dynamic> B =
+		Matrix<double, Dynamic, Dynamic>::Zero((UINT64)c1 + (UINT64)w1 + 1ULL, n1 + 1ULL);
+	long long j0 = Hi[n1](0, 0);
+	Matrix<double, Dynamic, Dynamic> HiB = Matrix<double, Dynamic, Dynamic>::Zero(n1 + 1LL, (w1 + c1) + 1LL);
+	Matrix<double, Dynamic, Dynamic> BHiBi = Matrix<double, Dynamic, Dynamic>::Zero((w1 + c1) + 1LL, (w1 + c1) + 1LL);
+	if (c1 == 0)
+	{
+		Matrix<long long, Dynamic, Dynamic> Wtilde = Matrix<long long, Dynamic, Dynamic>::Zero(w1, n1);
+		Matrix<long long, Dynamic, Dynamic> J = (Hi[n1]).block(1, 1, n1, n1);
+		Vector<long long, Dynamic> j = (Hi[n1]).block(1, 0, n1, 1);
+		Wtilde.block(0, 0, w1, n1) = W.block(0, 1, w1, n1);
+		for (i = 0; i < w1; i++)
+		{
+			Vector<long long,Dynamic> tmp = Wtilde.row(i).transpose();
+			remfac(tmp);
+			Wtilde.row(i) = tmp.transpose();
+		}
+		Matrix<long long, Dynamic, Dynamic> HiB_LL = Matrix<long long, Dynamic, Dynamic>::Zero(n1 + 1LL, w1 + 1LL);
+		HiB_LL(0, 0) = 1;
+		HiB_LL.block(1, 1, n1, w1) = (Wtilde * J).transpose();
+		HiB_LL.block(0, 1, 1, w1) = (Wtilde * j).transpose();
+		Matrix<long long, Dynamic, Dynamic> tmp = Wtilde * J;
+		BHiBi(0, 0) = 1.0;
+		Matrix<double, Dynamic, Dynamic> Jtilde = (Wtilde * J * (Wtilde.transpose())).cast<double>();
+		BHiBi.block(1, 1, w1, w1) = Jtilde.inverse();
+		HiB = HiB_LL.cast<double>();
+	}
+	else
+		if (c1 == 1)
+		{
+			Matrix<long long, Dynamic, Dynamic> Wtilde = Matrix<long long, Dynamic, Dynamic>::Zero(w1, n1);
+			Matrix<long long, Dynamic, Dynamic> J = (Hi[n1]).block(1, 1, n1, n1);
+			Vector<long long, Dynamic> j = (Hi[n1]).block(1, 0, n1, 1);
+			Wtilde.block(0, 0, w1, n1) = W.block(0, 1, w1, n1);
+			for (i = 0; i < w1; i++)
+			{
+				Vector<long long, Dynamic> tmp = Wtilde.row(i).transpose();
+				remfac(tmp);
+				Wtilde.row(i) = tmp.transpose();
+			}
+			Matrix<long long, Dynamic, Dynamic> HiB_LL = Matrix<long long, Dynamic, Dynamic>::Zero(n1 + 1LL, w1 + 2LL);
+			HiB_LL(0, 0) = 1;
+			HiB_LL(0, 1) = j0;
+			HiB_LL.block(1, 1, n1, 1) = j;
+			HiB_LL.block(0, 2, 1, c1 + w1 - 1) = (Wtilde * j).transpose();
+			HiB_LL.block(1, 2, n1, c1 + w1 - 1) = (Wtilde * J).transpose();
+			Matrix<double, Dynamic, Dynamic> K = (Wtilde * J * Wtilde.transpose()).cast<double>().inverse();
+			Vector<double, Dynamic> k = (Wtilde * j).cast<double>();
+			double k0 = j0 - (k.transpose()) * (K * k);
+			k = K * k;
+			BHiBi(0, 0) = k0;
+			BHiBi(0, 1) = -1.0;
+			BHiBi(1, 0) = -1.0;
+			BHiBi(1, 1) = 1;
+			BHiBi.block(0, 2, 1, w1) = k.transpose();
+			BHiBi.block(2, 0, w1, 1) = k;
+			BHiBi.block(1, 2, 1, w1) = -k.transpose();
+			BHiBi.block(2, 1, w1, 1) = -k;
+			BHiBi.block(2, 2, w1, w1) = k * k.transpose();
+			BHiBi /= k0 - 1;
+			BHiBi.block(2, 2, w1, w1) += K;
+
+			HiB = HiB_LL.cast<double>();
+		}
+		else
+		{
+			Matrix<long long, Dynamic, Dynamic> Wtilde = Matrix<long long, Dynamic, Dynamic>::Zero(w1, n1 + 1LL - c1);
+			Vector<long long, Dynamic> j1 = (Hi[n1]).block(1, 0, c1 - 1, 1),
+				j2 = (Hi[n1]).block(c1, 0, n1 + 1 - c1, 1);
+			Matrix<long long, Dynamic, Dynamic> J11 = (Hi[n1]).block(1, 1, c1 - 1, c1 - 1),
+				J21 = (Hi[n1]).block(c1, 1, n1 + 1 - c1, c1 - 1),
+				J22 = (Hi[n1]).block(c1, c1, n1 + 1 - c1, n1 + 1 - c1);
+			Wtilde.block(0, 0, w1, n1 + 1 - c1) = W.block(0, c1, w1, n1 + 1 - c1);
+			for (i = 0; i < w1; i++)
+			{
+				Vector<long long, Dynamic> tmp = Wtilde.row(i).transpose();
+				remfac(tmp);
+				Wtilde.row(i) = tmp.transpose();
+			}
+			Matrix<long long, Dynamic, Dynamic> HiB_LL =
+				Matrix<long long, Dynamic, Dynamic>::Zero(n1 + 1LL, c1 + w1 + 1LL);
+
+			HiB_LL(0, 0) = 1;
+			HiB_LL(0, 1) = j0;
+			HiB_LL.block(0, 2, 1, c1 - 1) = j1.transpose();
+			HiB_LL.block(0, c1 + 1, 1, w1) = (Wtilde * j2).transpose();
+
+			HiB_LL.block(1, 1, c1 - 1, 1) = j1;
+			HiB_LL.block(1, 2, c1 - 1, c1 - 1) = J11;
+			HiB_LL.block(1, c1 + 1, c1 - 1, w1) = (Wtilde * J21).transpose();
+
+			HiB_LL.block(c1, 1, n1 - c1 + 1, 1) = j2;
+			HiB_LL.block(c1, 2, n1 - c1 + 1, c1 - 1) = J21;
+			HiB_LL.block(c1, c1 + 1, n1 + 1 - c1, w1) = J22 * Wtilde.transpose();
+
+			Matrix<long long, Dynamic, Dynamic> J_LL(w1 + c1 - 1, w1 + c1 - 1);
+			Vector<long long, Dynamic> j_LL(w1 + c1 - 1);
+			J_LL.block(0, 0, c1 - 1, c1 - 1) = J11;
+			J_LL.block(c1 - 1, 0, w1, c1 - 1) = Wtilde * J21;
+			J_LL.block(0, c1 - 1, c1 - 1, w1) = J_LL.block(c1 - 1, 0, w1, c1 - 1).transpose();
+			J_LL.block(c1 - 1, c1 - 1, w1, w1) = (Wtilde * J22) * Wtilde.transpose();
+			j_LL.head(c1 - 1) = j1;
+			j_LL.tail(w1) = Wtilde * j2;
+		Matrix<double, Dynamic, Dynamic> K = J_LL.cast<double>().inverse();
+			Vector<double, Dynamic> j = j_LL.cast<double>();
+			Vector<double, Dynamic> k = K * j;
+			double k0 = j0 - j.transpose() * k;
+			BHiBi(0, 0) = k0;
+			BHiBi(0, 1) = -1.0;
+			BHiBi(1, 0) = -1.0;
+			BHiBi(1, 1) = 1;
+			BHiBi.block(0, 2, 1, w1 + c1 - 1) = k.transpose();
+			BHiBi.block(2, 0, w1 + c1 - 1, 1) = k;
+			BHiBi.block(1, 2, 1, w1 + c1 - 1) = -k.transpose();
+			BHiBi.block(2, 1, w1 + c1 - 1, 1) = -k;
+			BHiBi.block(2, 2, w1 + c1 - 1, w1 + c1 - 1) = k * k.transpose();
+			BHiBi /= k0 - 1;
+			BHiBi.block(2, 2, w1 + c1 - 1, w1 + c1 - 1) += K;
+
+			HiB = HiB_LL.cast<double>();
+		}
+		G[cK] = Hinv - HiB * (BHiBi * (HiB.transpose()));
 }
 
 void PWvlet::maintainFTrans(int n1, int N)
@@ -253,18 +370,27 @@ void PWvlet::maintainFTrans(int n1, int N)
 	else
 		nr = nc = 0;
 	F2tildeF.conservativeResize(n1 + 1ULL, N);
-	int i, j;
+	int i, j, k;
 	double Delta = 1.0 / (N - 1.0);
 	if (nc == 0)
 		nr = 0;
+	double* terms = new double[n1 + 1LL];
 	for (i = nr; i <= n1; i++)
 	{
 		F2tildeF(i, 0) = pow(0.5 * Delta, i + 1) / (1.0 + i);
 		for (j = 1; j < N - 1; j++)
-			F2tildeF(i, j) = (pow((j - 0.5) * Delta, i + 1) -
-				pow((j - 1.5) * Delta, i + 1)) / (1.0 + i);
-		F2tildeF(i, N - 1ULL) = (1 - pow(1 - 0.5 * Delta, i + 1)) / (1.0 + i);
+		{
+			terms[0] = pow(Delta, 1.0 + i)/(1.0 + i);
+			for (k = 1; k<= i; k++)
+				terms[k] = (i + 2LL - k) * (j - 1.5) * terms[k - 1] / (k + 1LL);
+			F2tildeF(i, j) = KahanSum(terms, i + 1);
+		}
+		terms[0] = Delta / 2;
+		for (k = 1; k <= i; k++)
+			terms[k] = -(i + 1 - k) * Delta * terms[k - 1] / 2 / (k + 1LL);
+		F2tildeF(i, N - 1ULL) = KahanSum(terms, i + 1);
 	}
+	delete[] terms;
 	fTrans[N] = F2tildeF;
 }
 
@@ -282,8 +408,10 @@ VectorXd PWvlet::points(int N)	//convert to values to be plotted against time
 /*make inner products*/
 double PWvlet::IP(const dataWin1& dW) const	//L2 IP
 {
-	MatrixXd K = fTrans[dW.WLen];
-	K.conservativeResize(n + 1ULL, dW.WLen);
+	int N = dW.WLen;
+	maintainFTrans(n, N);
+	MatrixXd K = fTrans[N];
+	K.conservativeResize((UINT64)n + 1ULL, dW.getLen());
 	return dW.Vec.transpose() * (K.transpose() * para);
 }
 

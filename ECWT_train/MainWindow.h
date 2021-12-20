@@ -65,7 +65,7 @@ class MainWindow : public BaseWindow<MainWindow>
     LRESULT OnWShChange(WPARAM, LPARAM);
 	LRESULT ChangeEditTCol(WPARAM, LPARAM);
     LRESULT OnLGrow(WPARAM);
-    LRESULT OnDGVal(WPARAM);
+    LRESULT OnDGVal(WPARAM, LPARAM);
     LRESULT OnySc(LPARAM);
     LRESULT OnyRsc(LPARAM);
     LRESULT OnWvltDraw(LPARAM);
