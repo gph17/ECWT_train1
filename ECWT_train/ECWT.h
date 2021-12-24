@@ -191,12 +191,12 @@ void ECWT<T>::draw(HWND hwnd, int N)
 		N = 100;//get width of graph later
 	//find co-ordinate value vectors of wvlets in triplet
 	int i;
-	Eigen::VectorXd curves[3];
+	Eigen::VectorXf curves[3];
 	for (i = 0; i < 3; i++)
 		curves[i] = wv[i].points(N);
 	//find max abs co-ord value over vectors of triplet
-	double ySc = std::max<double>(curves[0].lpNorm<Eigen::Infinity>(),
-		std::max<double>(curves[1].lpNorm<Eigen::Infinity>(), curves[2].lpNorm<Eigen::Infinity>()));
+	float ySc = std::max<float>(curves[0].lpNorm<Eigen::Infinity>(),
+		std::max<float>(curves[1].lpNorm<Eigen::Infinity>(), curves[2].lpNorm<Eigen::Infinity>()));
 	//send message updating yscale of window
 	SendMessage(hwnd, ADJ_YRSCL, NULL, reinterpret_cast<LPARAM>(&ySc));
 	//send messages to draw value vectors

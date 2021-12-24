@@ -52,9 +52,9 @@ public:
 		return ret;
 	}
 
-	double cordMax()
+	float cordMax()
 	{
-		return std::max<double>(chan[0].Vec.lpNorm<Eigen::Infinity>(),
+		return (float)std::max<double>(chan[0].Vec.lpNorm<Eigen::Infinity>(),
 			std::max<double>(chan[1].Vec.lpNorm<Eigen::Infinity>(), chan[2].Vec.lpNorm<Eigen::Infinity>()));
 	}
 

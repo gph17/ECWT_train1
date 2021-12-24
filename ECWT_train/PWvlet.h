@@ -51,7 +51,7 @@ public:
 
 	void populate(const dataWin1&);
 	
-	Eigen::VectorXd points(int);
+	Eigen::VectorXf points(int);
 
 	friend class ECWT<PWvlet>;
 };

@@ -36,9 +36,9 @@ public:
 
 	double IP(const dataWin1&) const;
 	
-	Eigen::VectorXd points(int = 0)
+	Eigen::VectorXf points(int = 0)
 	{
-		return Vec;
+		return Vec.cast<float>();
 	}
 
 

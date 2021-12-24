@@ -92,6 +92,8 @@ VectorXd xvals(int N)
 
 double KahanSum(double* terms, int Len)
 {
+	if (Len == 1)
+		return terms[0];
 	double sum = 0.0, c = 0.0;
 
 	for (int i = 0; i < Len; i++)

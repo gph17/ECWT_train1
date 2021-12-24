@@ -242,24 +242,6 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 					bestGoF = ECWT1.GoF;
 				}
 			}
-			if (better && hwnd && (shFreq > std::chrono::duration<double>::zero()) &&
-				((std::chrono::system_clock::now() - stime) > shFreq))
-			{
-				//do display stuff
-				SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
-				double GoF = LibStore.front().GoF;
-				WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
-				SendMessage(hwnd, DISPLAYGVAL, tmp, reinterpret_cast<LPARAM>(&mM));
-				//normalise dataWin
-				dW = dW.normalise();
-				//send message to adjust y-scale for dataWin
-				dW.adjYScale(hwnd);
-				//send message to re-adjust y-scale for ECWT and draw wavelets
-				ECWT1.draw(hwnd);
-				//send message to draw dataWin1s
-				dW.draw(hwnd);
-				stime = std::chrono::system_clock::now();
-			}
 		}
 		ifs.close();
 		if (hwnd && !LibStore.empty())

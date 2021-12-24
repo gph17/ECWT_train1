@@ -1113,19 +1113,19 @@ void MainWindow::WSEValid(wchar_t* inp, int& m, int& s, int& M)
 
 LRESULT MainWindow::OnySc(LPARAM lparam)
 {
-    yScale = (float(*(reinterpret_cast<double*>(lparam))));
+    yScale = *(reinterpret_cast<float*>(lparam));
     return 0;
 }
 
 LRESULT MainWindow::OnyRsc(LPARAM lparam)
 {
-    yScale = (float)(max(*(reinterpret_cast<double*>(lparam)), yScale));
+    yScale = max(*(reinterpret_cast<float*>(lparam)), yScale);
     return 0;
 }
 
 LRESULT MainWindow::OnWvltDraw(LPARAM lParam)
 {
-    VectorXd* curves = reinterpret_cast<VectorXd*>(lParam);
+    VectorXf* curves = reinterpret_cast<VectorXf*>(lParam);
     int i;
     LRESULT res;
     for (i = 0; i < 3; i++)
@@ -1138,7 +1138,7 @@ LRESULT MainWindow::OnWvltDraw(LPARAM lParam)
 
 LRESULT MainWindow::OnDWDraw(LPARAM lParam)
 {
-    VectorXd* pwConst = reinterpret_cast<VectorXd*>(lParam);
+    VectorXf* pwConst = reinterpret_cast<VectorXf*>(lParam);
     int i;
     LRESULT res;
     for (i = 0; i < 3; i++)

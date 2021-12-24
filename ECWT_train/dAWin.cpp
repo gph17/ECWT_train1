@@ -205,7 +205,7 @@ void dAWin::drawText()
 LRESULT dAWin::OnWDraw(LPARAM lParam)
 {
     GraphSetUp();
-    VectorXd* curve = reinterpret_cast<VectorXd*>(lParam);
+    VectorXf* curve = reinterpret_cast<VectorXf*>(lParam);
     int N = (int)(curve->size());
     HRESULT hr = CreateDeviceResources();
     if (SUCCEEDED(hr))
@@ -234,7 +234,7 @@ LRESULT dAWin::OnWDraw(LPARAM lParam)
 
 LRESULT dAWin::OnDWDraw(LPARAM lParam)
 {
-    VectorXd* pwConst = reinterpret_cast<VectorXd*>(lParam);
+    VectorXf* pwConst = reinterpret_cast<VectorXf*>(lParam);
     int N = (int)(pwConst->size());
     HRESULT hr = CreateDeviceResources();
     if (SUCCEEDED(hr))
@@ -242,29 +242,24 @@ LRESULT dAWin::OnDWDraw(LPARAM lParam)
         m_pRenderTarget->BeginDraw();
         m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
         D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
-        float x0 = rtSize.width / 50.f, X = rtSize.width - x0, Y = rtSize.height, y0 = Y / 2.f,
+        float x0 = rtSize.width / 50.f, X = rtSize.width - x0, y0 = rtSize.height/ 2.f,
             Delta = X / (N - 1.f), x1 = x0, x2 = x0 + Delta/2.f, y;
-        for (int i = 0; i < (N - 1); i++)
+        for (int i = 0; i < N; i++)
         {
-            if (i == 0)
+			y = y0 * (1 - (*pwConst)(i));
+			m_pRenderTarget->DrawLine(D2D1::Point2F(x1, y), D2D1::Point2F(x2, y),
+				m_pBlackBrush,
+				1.f);
+            if (i == (N - 1))
             {
+                x1 = 1.f - Delta / 2.f;
+                x2 = 1.f;
             }
             else
-                if (i == (N - 2))
-                {
-                    x1 = 1.f - Delta / 2.f;
-                    x2 = 1.f;
-                }
-                else
-                {
-                    x1 = x2;
-                    x2 += Delta;
-                    x2 += Delta;
-                }
-            y = y0 - Y * (float)(*pwConst)(i);
-            m_pRenderTarget->DrawLine(D2D1::Point2F(x1, y), D2D1::Point2F(x2, y),
-                m_pBlackBrush,
-                1.f);
+            {
+                x1 = x2;
+                x2 += Delta;
+            }
         }
 
         hr = m_pRenderTarget->EndDraw();

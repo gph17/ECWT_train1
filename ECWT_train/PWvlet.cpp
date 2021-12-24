@@ -229,8 +229,8 @@ void PWvlet::makeG(int n1, int c1, int w1)
 	Matrix<double, Dynamic, Dynamic> B =
 		Matrix<double, Dynamic, Dynamic>::Zero((UINT64)c1 + (UINT64)w1 + 1ULL, n1 + 1ULL);
 	long long j0 = Hi[n1](0, 0);
-	Matrix<double, Dynamic, Dynamic> HiB = Matrix<double, Dynamic, Dynamic>::Zero(n1 + 1LL, (w1 + c1) + 1LL);
-	Matrix<double, Dynamic, Dynamic> BHiBi = Matrix<double, Dynamic, Dynamic>::Zero((w1 + c1) + 1LL, (w1 + c1) + 1LL);
+	Matrix<double, Dynamic, Dynamic> HiB = Matrix<double, Dynamic, Dynamic>::Zero(n1 + 1LL, (1LL + w1) + c1);
+	Matrix<double, Dynamic, Dynamic> BHiBi = Matrix<double, Dynamic, Dynamic>::Zero((1LL + w1) + c1, (1LL + w1) + c1);
 	if (c1 == 0)
 	{
 		Matrix<long long, Dynamic, Dynamic> Wtilde = Matrix<long long, Dynamic, Dynamic>::Zero(w1, n1);
@@ -306,28 +306,28 @@ void PWvlet::makeG(int n1, int c1, int w1)
 				Wtilde.row(i) = tmp.transpose();
 			}
 			Matrix<long long, Dynamic, Dynamic> HiB_LL =
-				Matrix<long long, Dynamic, Dynamic>::Zero(n1 + 1LL, c1 + w1 + 1LL);
+				Matrix<long long, Dynamic, Dynamic>::Zero(n1 + 1LL, (c1 + 1LL) + w1);
 
 			HiB_LL(0, 0) = 1;
 			HiB_LL(0, 1) = j0;
 			HiB_LL.block(0, 2, 1, c1 - 1) = j1.transpose();
-			HiB_LL.block(0, c1 + 1, 1, w1) = (Wtilde * j2).transpose();
+			HiB_LL.block(0, c1 + 1LL, 1, w1) = (Wtilde * j2).transpose();
 
 			HiB_LL.block(1, 1, c1 - 1, 1) = j1;
-			HiB_LL.block(1, 2, c1 - 1, c1 - 1) = J11;
-			HiB_LL.block(1, c1 + 1, c1 - 1, w1) = (Wtilde * J21).transpose();
+			HiB_LL.block(1, 2, c1 - 1LL, c1 - 1LL) = J11;
+			HiB_LL.block(1, c1 + 1LL, c1 - 1LL, w1) = (Wtilde * J21).transpose();
 
 			HiB_LL.block(c1, 1, n1 - c1 + 1, 1) = j2;
 			HiB_LL.block(c1, 2, n1 - c1 + 1, c1 - 1) = J21;
 			HiB_LL.block(c1, c1 + 1, n1 + 1 - c1, w1) = J22 * Wtilde.transpose();
 
 			Matrix<long long, Dynamic, Dynamic> J_LL(w1 + c1 - 1, w1 + c1 - 1);
-			Vector<long long, Dynamic> j_LL(w1 + c1 - 1);
-			J_LL.block(0, 0, c1 - 1, c1 - 1) = J11;
-			J_LL.block(c1 - 1, 0, w1, c1 - 1) = Wtilde * J21;
-			J_LL.block(0, c1 - 1, c1 - 1, w1) = J_LL.block(c1 - 1, 0, w1, c1 - 1).transpose();
-			J_LL.block(c1 - 1, c1 - 1, w1, w1) = (Wtilde * J22) * Wtilde.transpose();
-			j_LL.head(c1 - 1) = j1;
+			Vector<long long, Dynamic> j_LL(w1 + (c1 - 1LL));
+			J_LL.block(0, 0, c1 - 1LL, c1 - 1LL) = J11;
+			J_LL.block(c1 - 1LL, 0, w1, c1 - 1LL) = Wtilde * J21;
+			J_LL.block(0, c1 - 1LL, c1 - 1LL, w1) = J_LL.block(c1 - 1LL, 0, w1, c1 - 1).transpose();
+			J_LL.block(c1 - 1LL, c1 - 1LL, w1, w1) = (Wtilde * J22) * Wtilde.transpose();
+			j_LL.head(c1 - 1LL) = j1;
 			j_LL.tail(w1) = Wtilde * j2;
 		Matrix<double, Dynamic, Dynamic> K = J_LL.cast<double>().inverse();
 			Vector<double, Dynamic> j = j_LL.cast<double>();
@@ -377,30 +377,47 @@ void PWvlet::maintainFTrans(int n1, int N)
 	double* terms = new double[n1 + 1LL];
 	for (i = nr; i <= n1; i++)
 	{
-		F2tildeF(i, 0) = pow(0.5 * Delta, i + 1) / (1.0 + i);
-		for (j = 1; j < N - 1; j++)
+		if (i)
 		{
-			terms[0] = pow(Delta, 1.0 + i)/(1.0 + i);
-			for (k = 1; k<= i; k++)
-				terms[k] = (i + 2LL - k) * (j - 1.5) * terms[k - 1] / (k + 1LL);
-			F2tildeF(i, j) = KahanSum(terms, i + 1);
+			F2tildeF(i, 0) = pow(0.5 * Delta, i + 1) / (1.0 + i);
+			for (j = 1; j < N - 1; j++)
+			{
+				terms[0] = pow(Delta, 1.0 + i) / (1.0 + i);
+				for (k = 1; k <= i; k++)
+					terms[k] = ((i + 2LL - k) * (j - 0.5) * terms[k - 1]) /k;
+				F2tildeF(i, j) = KahanSum(terms, i + 1);
+			}
+			terms[0] = Delta / 2;
+			for (k = 1; k <= i; k++)
+				terms[k] = -(i + 1 - k) * Delta * terms[k - 1] / 2 / (k + 1.0);
+			int i1 = i / 2, i2 = i - i1 - 1;
+			double* terms1 = new double[i1 + 1], *terms2 = new double[i2 + 1];
+			for (k = 0; k <= i1; k++)
+				terms1[k] = terms[2 * k];
+			for (k = 0; k <= i2; k++)
+				terms2[k] = terms[2 * k + 1];
+			F2tildeF(i, N - 1ULL) = KahanSum(terms1, i1 + 1) + KahanSum(terms2, i2 + 1);
+			delete[] terms1, terms2;
 		}
-		terms[0] = Delta / 2;
-		for (k = 1; k <= i; k++)
-			terms[k] = -(i + 1 - k) * Delta * terms[k - 1] / 2 / (k + 1LL);
-		F2tildeF(i, N - 1ULL) = KahanSum(terms, i + 1);
+		else
+		{
+			F2tildeF(i, 0) = Delta / 2;
+			for (j = 1; j < N - 1; j++)
+				F2tildeF(i, j) = Delta;
+			F2tildeF(i, N - 1) = Delta / 2;
+		}
 	}
 	delete[] terms;
 	fTrans[N] = F2tildeF;
 }
 
 /*provide override for drawable function*/
-VectorXd PWvlet::points(int N)	//convert to values to be plotted against time
+VectorXf PWvlet::points(int N)	//convert to values to be plotted against time
 {
-	VectorXd ret(N);
+	VectorXf ret(N);
 	int i;
 	for (i = 0; i < N; i++)
-		ret(i) = poly_eval(para, i/(N - 1.0));
+		ret(i) = poly_eval(para, i/(N - 1.f));
 	return ret;
 }
 

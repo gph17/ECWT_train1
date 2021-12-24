@@ -20,9 +20,16 @@ dataWin::dataWin(int SR1, const int WL, ifstream& source): dataWin::dataWin(WL)
 		chan[i].WLen = WLen;
 		chan[i].Vec.setZero(WLen);
 	}
+	source.getline(line, 256);
+	for (i = 0; line[i]; i++)
+		if (!isdigit(line[i]) && (line[i] != '-') && (line[i] != '.') && (line[i] != ',') && (line[i] != ' ')
+			&& (line[i] != '+') && (line[i] != 'E') && (line[i] != 'e'))
+		{
+			source.getline(line, 256);
+			break;
+		}
 	for (i = 0; i < WLen; i++)
 	{
-		source.getline(line, 256);//ignore header later
 		if (source.eof())
 		{
 			cerr << "Input file too short\n";
@@ -46,6 +53,8 @@ dataWin::dataWin(int SR1, const int WL, ifstream& source): dataWin::dataWin(WL)
 		values[2] = stod(tmp);
 		for (int j = 0; j < 3; j++)
 			chan[j].Vec(i) = values[j];
+		if (i < WLen - 1)
+			source.getline(line, 256);
 	}
 }
 
@@ -87,12 +96,12 @@ void dataWin::draw(HWND hwnd)
 {
 	//find co-ordinate value vectors of wvlets in triplet
 	int i;
-	Eigen::VectorXd pwConst[3];
+	Eigen::VectorXf pwConst[3];
 	for (i = 0; i < 3; i++)
 		pwConst[i] = chan[i].points();
 	//find max abs co-ord value over vectors of triplet
-	double ySc = std::max<double>(pwConst[0].lpNorm<Eigen::Infinity>(),
-		std::max<double>(pwConst[1].lpNorm<Eigen::Infinity>(), pwConst[2].lpNorm<Eigen::Infinity>()));
+	float ySc = std::max<float>(pwConst[0].lpNorm<Eigen::Infinity>(),
+		std::max<float>(pwConst[1].lpNorm<Eigen::Infinity>(), pwConst[2].lpNorm<Eigen::Infinity>()));
 	//send message updating yscale of window
 	SendMessage(hwnd, ADJ_YRSCL, NULL, reinterpret_cast<LPARAM>(&ySc));
 	//send messages to draw value vectors
