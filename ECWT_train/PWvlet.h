@@ -54,5 +54,6 @@ public:
 	Eigen::VectorXf points(int);
 
 	friend class ECWT<PWvlet>;
+
 };
 

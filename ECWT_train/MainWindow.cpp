@@ -1,3 +1,4 @@
+//test
 #include <Eigen/Dense>
 #include <shobjidl.h>
 #include <sstream>
@@ -23,6 +24,7 @@ using namespace Eigen;
 #define NEDIT 9
 #define NEDITL 10
 #define WSEDIT 11
+
 #define WSEDITLL 12
 #define WSEDITLT 13
 #define WSHEDIT 14
@@ -403,6 +405,13 @@ LRESULT MainWindow::OnCreate()
             WSEDITLL)))
             return(-1);
         EnableWindow(WSEditLL, FALSE);
+
+        if (!(WSEdit = CreateCntrl(L"EDIT",
+            NULL,
+            WS_VISIBLE | ES_LEFT | ES_READONLY,
+            m_hwnd,
+            WSEDIT)))
+            return(-1);
 
         if (!(WSEditLT = CreateCntrl(L"STATIC",
             L"m:M or m:s:M",

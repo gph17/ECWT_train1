@@ -3,10 +3,12 @@
 #include<cmath>
 #include <Eigen/Eigenvalues>
 #include <Eigen/Dense>
+#include <iostream>
 #include<string>
 
 #include "dataWin.h"
 #include "PWvlet.h"
+#include "util.h"
 #include "wvlet.h"
 
 template<typename T>
@@ -52,7 +54,7 @@ public:
 		}
 	}
 
-	ECWT(dataWin, int n1, int c, int w, int st = 0, const wchar_t* = 0);
+	ECWT(dataWin, int n1, int c, int w, int st = 0, const wchar_t* = 0, double GoFLim = 0);
 
 	ECWT() : GoF(0.0), WLen(0), cNo(0), wCNo(0), iscanonical(false), n(0), start(0), signature{ 0.0, 0.0, 0.0}
 	{
@@ -155,10 +157,33 @@ void ECWT<T>::canonicise()
 }
 
 template<typename T>
-ECWT<T>::ECWT(dataWin dW, int n1, int c, int w, int st, const wchar_t* sr) : n(n1), cNo(c), wCNo(w), iscanonical(false), 
-WLen(dW.WLen), start(st)
+ECWT<T>::ECWT(dataWin dW, int n1, int c, int w, int st, const wchar_t* sr, double GoFLim) : 
+	n(n1), cNo(c), wCNo(w), iscanonical(false), WLen(dW.WLen), start(st), GoF(0)
 {
-	for (int i = 0; i < 3; i++)
+	double dNrm = dW.IP(dW) - dW.muMag2();
+	if (dNrm <= 1e-6)
+		return;	//GoF == 0 indicates that wavelets from near flat data should be ignored
+	complexKey cK = { n, cNo, wCNo };
+	if (!PWvlet::valid.count(cK))
+	{
+		std::cerr << "Numerical problems with this combination of parameters\n";
+		exit(-1);
+	}
+	int i;
+	int N = dW.chan[0].getLen();
+	PWvlet::makeG(n1, c, w);
+	PWvlet::maintainFTrans(n1, N);
+	Eigen::MatrixXd K = PWvlet::fTrans[N];
+	K.conservativeResize((UINT64)n + 1ULL, N);
+	Eigen::MatrixXd G1 = PWvlet::G[cK];
+
+	GoF = dW.GoFFun(K, G1);
+	GoF = GoF > 1.0 ? 1.0 : GoF;
+	GoF = GoF < GoFLim ? 0.0 : GoF;	//rounding out of range corrected
+	if (GoF < GoFLim)
+		return;	//discard ECWT
+	/* GoF is the square of the cosine of the angle between fitted wavelet and data - big is good */
+	for (i = 0; i < 3; i++)
 	{
 		wv[i].n = n;
 		wv[i].cNo = cNo;
@@ -167,19 +192,8 @@ WLen(dW.WLen), start(st)
 	}
 	if (sr != 0)
 		source = sr;
-	/* GoF is the cosine of the angle between fitted wavelet and data - big is good */
-	double dNrm = dW.IP(dW) - dW.muMag2();
 	double nrm = IP(*this);
 	nrm = std::sqrt(nrm);
-	if (dNrm <= 1e-6)
-		GoF = 0;	//indicates that wavelets from near flat data should be ignored
-	else
-	{
-		dNrm = std::sqrt(dNrm);
-		GoF = IP(dW)/nrm/dNrm;
-		GoF = GoF > 1.0 ? 1.0 : GoF;
-		GoF = GoF < 0.0 ? 0.0 : GoF;	//rounding out of range corrected
-	}
 	for (int i = 0; i < 3; i++)
 		wv[i].para /= nrm;
 }

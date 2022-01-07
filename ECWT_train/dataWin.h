@@ -8,8 +8,12 @@
 
 #include "dataWin1.h"
 
+#include "util.h"
+
 #define ADJ_YSCL (WM_USER + 3)
 #define ADJ_YRSCL (WM_USER + 4)
+
+class PWvlet;
 
 class dataWin
 {
@@ -37,15 +41,18 @@ public:
 		return mu.transpose() * mu;
 	}
 
-	dataWin normalise()
+	dataWin centralise()
 	{
-		dataWin ret(WLen);
+		dataWin ret = *this;
 		Eigen::Vector3d mu = mean();
 		for (int i = 0; i < 3; i++)
-		{
 			ret.chan[i].Vec = (chan[i].Vec.array() - mu(i)).matrix();
-			ret.chan[i].WLen = WLen;
-		}
+		return ret;
+	}
+
+	dataWin normalise()
+	{
+		dataWin ret = centralise();
 		double fac = sqrt(ret.IP(ret));
 		for (int i = 0; i < 3; i++)
 			ret.chan[i].Vec /= fac;
@@ -72,6 +79,8 @@ public:
 		//assumed mapped to [0, 1)
 		return chan[0].IP(chan[0]) + chan[1].IP(chan[1]) + chan[2].IP(chan[2]);
 	}
+
+	double GoFFun(const Eigen::MatrixXd& K, const Eigen::MatrixXd& G);
 
 	template <typename T>
 	friend class ECWT;

@@ -107,3 +107,17 @@ void dataWin::draw(HWND hwnd)
 	//send messages to draw value vectors
 	SendMessage(hwnd, DATAWDRAW, NULL, reinterpret_cast<LPARAM>(&pwConst));
 }
+
+double dataWin::GoFFun(const MatrixXd& K, const MatrixXd& G)
+{
+	double GoF = 0;
+	dataWin tmpDw = centralise();
+	VectorXd tmp;
+	for (int i = 0; i < 3; i++)
+	{
+		tmp = K * tmpDw.chan[i].Vec;
+		GoF += tmp.transpose() * (G * tmp);
+	}
+	GoF /= tmpDw.IP(tmpDw);
+	return GoF;
+}

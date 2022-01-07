@@ -181,6 +181,7 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 	std::ifstream ifs;
 	ECWT<T> last, best;
 	dataWin lastDW, bestDW;
+	double worstGoF = GoFThresh;
 	double bestGoF = 0;
 	bool better;
 	int mM = 0;
@@ -189,7 +190,9 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 		int start = 0;
 		ifs.open(src);
 		dataWin dW(n, i, ifs);
-		ECWT<T> ECWT1(dW, n, cNo, wCNo, start, src);
+		if (LibStore.size()== LSize)
+			worstGoF = LibStore.front().GoF;
+		ECWT<T> ECWT1(dW, n, cNo, wCNo, start, src, worstGoF);
 		prodStats.update(ECWT1.GoF, ECWT1.WLen);
 		better = condAdd(ECWT1);
 		if (better)
@@ -204,11 +207,11 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 			}
 		}
 		if (better && hwnd && (shFreq > std::chrono::duration<double>::zero()))
-			{
+		{
 			//do display stuff
 			SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
-			double GoF = LibStore.front().GoF;
-			WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
+			worstGoF = LibStore.front().GoF;
+			WPARAM tmp = reinterpret_cast<WPARAM>(&worstGoF);
 			SendMessage(hwnd, DISPLAYGVAL, tmp, reinterpret_cast<LPARAM>(&mM));
 			//normalise dataWin
 			dW = dW.normalise();
@@ -228,7 +231,9 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 			if (!dataLeft)
 				break;
 			start += WinStep;
-			ECWT<T> ECWT1(dW, n, cNo, wCNo, start, src);
+			if (LibStore.size()== LSize)
+				worstGoF = LibStore.front().GoF;
+			ECWT<T> ECWT1(dW, n, cNo, wCNo, start, src, worstGoF);
 			prodStats.update(ECWT1.GoF, ECWT1.WLen);
 			better = condAdd(ECWT1);
 			if (better)
@@ -247,8 +252,8 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 		if (hwnd && !LibStore.empty())
 		{
 			SendMessage(hwnd, DISPLAYLSIZE, (WPARAM)(LibStore.size()), NULL);
-			double GoF = LibStore.front().GoF;
-			WPARAM tmp = reinterpret_cast<WPARAM>(&GoF);
+			worstGoF = LibStore.front().GoF;
+			WPARAM tmp = reinterpret_cast<WPARAM>(&worstGoF);
 			SendMessage(hwnd, DISPLAYGVAL, tmp, reinterpret_cast <LPARAM>(&mM));
 			//normalise dataWin
 			lastDW = lastDW.normalise();
