@@ -1,4 +1,3 @@
-//test
 #include <Eigen/Dense>
 #include <shobjidl.h>
 #include <sstream>
