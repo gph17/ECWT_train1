@@ -122,7 +122,7 @@ void MainWindow::OnProcess(int butType)
     ShowWindow(BrButton, SW_HIDE);
     ShowWindow(AbButton, SW_SHOW);
     SendMessage(WSEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
-    SendMessage(WSHEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
+    SendMessage(WShEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
     SendMessage(LSzEB, EM_SETREADONLY, (WPARAM)TRUE, NULL);
     SendMessage(GoFTh, EM_SETREADONLY, (WPARAM)TRUE, NULL);
     ListBox_Enable(degreeLB, FALSE);
@@ -420,22 +420,15 @@ LRESULT MainWindow::OnCreate()
             return(-1);
         EnableWindow(WSEditLT, FALSE);
 
-        if (!(WSEdit = CreateCntrl(L"EDIT",
-            NULL,
-            WS_VISIBLE | ES_LEFT | ES_READONLY,
-            m_hwnd,
-            WSEDIT)))
-            return(-1);
-
-        if (!(WSHEditL = CreateCntrl(L"STATIC",
+        if (!(WShEditL = CreateCntrl(L"STATIC",
             L"Window Shift",
             WS_VISIBLE | SS_LEFT,
             m_hwnd,
             WSHEDITL)))
             return(-1);
-        EnableWindow(WSHEditL, FALSE);
+        EnableWindow(WShEditL, FALSE);
 
-        if (!(WSHEdit = CreateCntrl(L"EDIT",
+        if (!(WShEdit = CreateCntrl(L"EDIT",
             NULL,
             WS_VISIBLE | ES_LEFT | ES_READONLY,
             m_hwnd,
@@ -608,7 +601,7 @@ BOOL CALLBACK MainWindow::PlaceCntrl(HWND hwnd, LPARAM lParam)
 LRESULT MainWindow::ChangeStatCol(WPARAM wParam, LPARAM lParam)
 {
     HDC hdcStatic = (HDC)wParam;
-    if (((HWND)lParam == WSEdit) || ((HWND)lParam == WSHEdit) || ((HWND)lParam == LSzEB) || ((HWND)lParam == GoFTh))
+    if (((HWND)lParam == WSEdit) || ((HWND)lParam == WShEdit) || ((HWND)lParam == LSzEB) || ((HWND)lParam == GoFTh))
     {
         SetBkColor(hdcStatic, MainWindow::bgColD);
         return (LRESULT)MainWindow::hbrBgD;
@@ -628,9 +621,9 @@ LRESULT MainWindow::ChangeEditTCol(WPARAM wParam, LPARAM lParam)
 
         return (LRESULT)GetSysColorBrush(COLOR_BTNFACE);
     }
-    if ((HWND)lParam == WSHEdit)
+    if ((HWND)lParam == WShEdit)
     {
-        if (WSHEditRed)
+        if (WShEditRed)
             SetTextColor((HDC)wParam, RGB(255, 0, 0));
         else
             SetTextColor((HDC)wParam, RGB(0, 0, 0));
@@ -912,17 +905,17 @@ LRESULT MainWindow::OnWSChange(WPARAM wParam, LPARAM lParam)
         MainWindow::WSEValid(str, minL, stepL, MaxL);
         if (minL && (MaxL >= minL))
         {
-            //Enable WSHEdit label, make WSHedit writable, change WSEdit text colour to black
-            EnableWindow(WSHEditL, TRUE);
-            SendMessage(WSHEdit, EM_SETREADONLY, (WPARAM)FALSE, NULL);
+            //Enable WShEdit label, make WSHedit writable, change WSEdit text colour to black
+            EnableWindow(WShEditL, TRUE);
+            SendMessage(WShEdit, EM_SETREADONLY, (WPARAM)FALSE, NULL);
             WSEditRed = false;
             ChangeEditTCol(wParam, lParam);
         }
         else
         {
-            //Disable WSHEdit label, make WSHedit unwritable, change WSEdit text colour to red
-            EnableWindow(WSHEditL, FALSE);
-            SendMessage(WSHEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
+            //Disable WShEdit label, make WSHedit unwritable, change WSEdit text colour to red
+            EnableWindow(WShEditL, FALSE);
+            SendMessage(WShEdit, EM_SETREADONLY, (WPARAM)TRUE, NULL);
             WSEditRed = true;
             ChangeEditTCol(wParam, lParam);
         }
@@ -963,8 +956,8 @@ LRESULT MainWindow::OnWShChange(WPARAM wParam, LPARAM lParam)
         //check compatibility with minL value
         if (wShift <= minL)
         {
-            //Change WSHEdit text colour to black, possibly enable demoButton and BgButton
-            WSHEditRed = false;
+            //Change WShEdit text colour to black, possibly enable demoButton and BgButton
+            WShEditRed = false;
             ChangeEditTCol(wParam, lParam);
             if (EnabCond(demoButton))
             {
@@ -974,8 +967,8 @@ LRESULT MainWindow::OnWShChange(WPARAM wParam, LPARAM lParam)
         }
         else
         {
-            //Change WSHEdit text colour to red, disable demoButton and BgButton
-            WSHEditRed = true;
+            //Change WShEdit text colour to red, disable demoButton and BgButton
+            WShEditRed = true;
             ChangeEditTCol(wParam, lParam);
             EnableWindow(demoButton, FALSE);
             EnableWindow(BgButton, FALSE);

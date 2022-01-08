@@ -31,8 +31,8 @@ class MainWindow : public BaseWindow<MainWindow>
     HWND WSEdit = 0;
     HWND WSEditLL = 0;
     HWND WSEditLT = 0;
-    HWND WSHEdit = 0;
-    HWND WSHEditL = 0;
+    HWND WShEdit = 0;
+    HWND WShEditL = 0;
     HWND GoFTh = 0;
 	HWND GoFThL = 0;
     HWND WGoFL = 0;
@@ -78,12 +78,12 @@ class MainWindow : public BaseWindow<MainWindow>
             (MaxL >= minL) && (wShift > 0) && (lib.GoFThresh>= 0) && (lib.GoFThresh < 1);
         if ((contr == WSEdit) || (contr == WSEditLL) || (contr == WSEditLT))
             return (lib.n != 0);
-        if ((contr == WSHEdit) || (contr == WSHEditL))
+        if ((contr == WShEdit) || (contr == WShEditL))
             return (lib.n != 0) && (minL > (lib.n + 1)) && (MaxL >= minL);
         return true;
     }
 
-    bool GFEditRed = true, WSEditRed = true, WSHEditRed = true;
+    bool GFEditRed = true, WSEditRed = true, WShEditRed = true;
     static HWND CreateCntrl(LPCWSTR wCName,
         LPCWSTR wTitle,
         DWORD mask,
@@ -93,7 +93,7 @@ class MainWindow : public BaseWindow<MainWindow>
 
 public:
     MainWindow(): pFilePath(0), minL(0), stepL(1), MaxL(0), wShift(0),
-        WSEditRed(true), WSHEditRed(true)
+        WSEditRed(true), WShEditRed(true)
     {
     }
     static BOOL CALLBACK PlaceCntrl(HWND, LPARAM);
