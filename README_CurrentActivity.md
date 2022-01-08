@@ -2,7 +2,7 @@
 1. Write README.md;
 2. Produce video clip of set-up and run;
 3. Produce documentation describing set-up and run;
-4. Expand README in pdf;
+4. Expand README content in new pdf;
 5. Add spaceship operator, remove other in/equality operators where appropriate;
 6. Make software re-draw windows properly after being hidden (also investigate intermittent minor initial misdrawing of controls);
 7. Make software work in non-demo mode, and save results (in both modes);
