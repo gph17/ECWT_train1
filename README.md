@@ -4,7 +4,7 @@
 
 ### Dependencies
 
-The C++ software here will compile under Visual Studio 2019 (VS2019), as it contains a Windows GUI. It also uses the VS2019 `long long` (`int`) type, which has 64 bits, to ensure the accuracy of certain calculations.
+The C++ software here will compile under Visual Studio 2019 (VS2019), as it contains a Windows GUI. It also uses the VS2019 `long long` (`int`) type, which has 64 bits, to ensure the accuracy of certain calculations. Some features of C++ 20 are used, so the property ISO C++ 20 Standard (/std:c++20) needs to be set (follow C/C++ --> Language --> from the project property page in VS2019).
 
 A further dependency is on the matrix manipulation code written by Gaël Guennebaud and Benoït Jacob *et al* and documented on https://eigen.tuxfamily.org, which needs to be downloaded and placed on the relevant path.
 
