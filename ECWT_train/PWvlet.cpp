@@ -30,7 +30,7 @@ const set<complexKey> PWvlet::valid = { {4, 0, 0},
 	{13, 0, 0}, {13, 0, 1}, {13, 0, 2}, {13, 1, 1}, {13, 1, 2},
 	{14, 0, 0}, {14, 0, 1}, {14, 0, 2}, {14, 1, 1}, {14, 1, 2},
 	{15, 0, 0}, {15, 0, 1}, {15, 0, 2}, {15, 1, 1}, {15, 1, 2},
-	{16, 0, 0}, {16, 0, 1}, {16, 0, 2}, {16, 1, 1}, {16, 1, 2}, {16, 1, 3} }; 
+	{16, 0, 0}, {16, 0, 1}, {16, 0, 2}, {16, 1, 1}, {16, 1, 2}}; 
 
 PWvlet::PWvlet(int n1, int cNo1, int wCNo1) :
 	wvlet(n1, cNo1, wCNo1)
@@ -349,7 +349,8 @@ void PWvlet::makeG(int n1, int c1, int w1)
 
 			HiB = HiB_LL.cast<double>();
 		}
-		G[cK] = Hinv - HiB * (BHiBi * (HiB.transpose()));
+		MatrixXd G0 = Hinv - HiB * (BHiBi * (HiB.transpose())), G1 = G0.transpose();
+		G[cK] = (G0 + G1) / 2;
 }
 
 void PWvlet::maintainFTrans(int n1, int N)

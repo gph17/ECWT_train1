@@ -1,7 +1,7 @@
 #pragma once
 
 #include<cmath>
-//#include<compare>
+#include<compare>
 #include <Eigen/Eigenvalues>
 #include <Eigen/Dense>
 #include <iostream>
@@ -63,12 +63,12 @@ public:
 
 	void draw(HWND, int = 0);
 
-	/*auto operator<=>(const ECWT& ECWT1) const
+	auto operator<=>(const ECWT& ECWT1) const
 	{
 		return GoF <=> ECWT1.GoF;
-	}*/
+	}
 
-	bool operator>(const ECWT& ECWT1) const
+/*	bool operator>(const ECWT& ECWT1) const
 	{
 		return GoF > ECWT1.GoF;
 	}
@@ -82,7 +82,7 @@ public:
 	{
 		return GoF== ECWT1.GoF;
 	}
-
+	*/
 
 	template <typename T>
 	friend class Lib;
