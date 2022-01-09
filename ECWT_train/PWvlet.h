@@ -26,6 +26,7 @@ public:
 	static std::map<int, Eigen::Matrix<long long, Eigen::Dynamic, Eigen::Dynamic>> Hi;	//generate for each n 
 																						//	encountered
 	static std::map<complexKey, Eigen::MatrixXd> G;	//modified H^{-1} - generate for each (n, cNo, wNo) encountered
+	static std::map<complexKey, Eigen::MatrixXd> P;	//adjusts H^{-1} - generate for each (n, cNo, wNo) encountered
 
 	static std::map<int, Eigen::MatrixXd> fTrans;
 
@@ -35,6 +36,7 @@ public:
 	/*make static members*/
 	static void makeH(int);
 	static void makeG(int, int, int);
+	static void makeP(int, int, int);
 	static void makeW(int, int);
 	static void maintainFTrans(int, int);
 	/*make inner products*/

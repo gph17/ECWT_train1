@@ -108,15 +108,15 @@ void dataWin::draw(HWND hwnd)
 	SendMessage(hwnd, DATAWDRAW, NULL, reinterpret_cast<LPARAM>(&pwConst));
 }
 
-double dataWin::GoFFun(const MatrixXd& K, const MatrixXd& G)
+double dataWin::GoFFun(const MatrixXd& K, const MatrixXd& Hi, const MatrixXd& P)
 {
 	double GoF = 0;
 	dataWin tmpDw = centralise();
 	VectorXd tmp;
 	for (int i = 0; i < 3; i++)
 	{
-		tmp = K * tmpDw.chan[i].Vec;
-		GoF += tmp.transpose() * (G * tmp);
+		tmp = P.transpose() * (K * chan[i].Vec);
+		GoF += tmp.transpose() * (Hi * tmp);
 	}
 	GoF /= tmpDw.IP(tmpDw);
 	return GoF;

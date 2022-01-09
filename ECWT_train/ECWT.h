@@ -68,22 +68,6 @@ public:
 		return GoF <=> ECWT1.GoF;
 	}
 
-/*	bool operator>(const ECWT& ECWT1) const
-	{
-		return GoF > ECWT1.GoF;
-	}
-
-	bool operator<(const ECWT& ECWT1) const
-	{
-		return GoF < ECWT1.GoF;
-	}
-
-	bool operator==(const ECWT& ECWT1) const
-	{
-		return GoF== ECWT1.GoF;
-	}
-	*/
-
 	template <typename T>
 	friend class Lib;
 };
@@ -178,16 +162,15 @@ ECWT<T>::ECWT(dataWin dW, int n1, int c, int w, int st, const wchar_t* sr, doubl
 	}
 	int i;
 	int N = dW.chan[0].getLen();
-	PWvlet::makeG(n1, c, w);
+	PWvlet::makeP(n1, c, w);
 	PWvlet::maintainFTrans(n1, N);
 	Eigen::MatrixXd K = PWvlet::fTrans[N];
 	K.conservativeResize((UINT64)n + 1ULL, N);
-	Eigen::MatrixXd G1 = PWvlet::G[cK];
 
-	GoF = dW.GoFFun(K, G1);
+	GoF = dW.GoFFun(K, PWvlet::Hi[n].cast<double>(), PWvlet::P[cK]);
 	GoF = GoF > 1.0 ? 1.0 : GoF;
 	GoF = GoF < GoFLim ? 0.0 : GoF;	//rounding out of range corrected
-	if (GoF < GoFLim)
+	if (GoF == 0)
 		return;	//discard ECWT
 	/* GoF is the square of the cosine of the angle between fitted wavelet and data - big is good */
 	for (i = 0; i < 3; i++)

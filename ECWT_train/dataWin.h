@@ -80,7 +80,7 @@ public:
 		return chan[0].IP(chan[0]) + chan[1].IP(chan[1]) + chan[2].IP(chan[2]);
 	}
 
-	double GoFFun(const Eigen::MatrixXd& K, const Eigen::MatrixXd& G);
+	double GoFFun(const Eigen::MatrixXd& K, const Eigen::MatrixXd& Hi, const Eigen::MatrixXd& P);
 
 	template <typename T>
 	friend class ECWT;
