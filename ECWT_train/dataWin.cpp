@@ -111,13 +111,12 @@ void dataWin::draw(HWND hwnd)
 double dataWin::GoFFun(const MatrixXd& K, const MatrixXd& Hi, const MatrixXd& P)
 {
 	double GoF = 0;
-	dataWin tmpDw = centralise();
 	VectorXd tmp;
 	for (int i = 0; i < 3; i++)
 	{
 		tmp = P.transpose() * (K * chan[i].Vec);
 		GoF += tmp.transpose() * (Hi * tmp);
 	}
-	GoF /= tmpDw.IP(tmpDw);
+	GoF /= IP(*this);
 	return GoF;
 }
