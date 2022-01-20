@@ -10,6 +10,8 @@ A further dependency is on the matrix manipulation code written by Gaël Guenneb
 
 ### Other non-code files
 
+`description1.mp4` contains a clip showing the set-up and execution of the app, using sample data from https://zenodo.org/record/3519213#.Yel-TmjP3IU (accelerometry data collected by Alexandros Papadopoulos, Konstantinos Kyritsis, Sevasti Bostantjopoulou, Lisa Klingelhoefer, Kallol Ray Chaudhuri and Anastasios Delopoulos).
+
 ## Description
 
 We wish to implement software based on the algorithms in the author's University of York EngD thesis. The application described here implements phase one training - building a library of "shapes" - paths in three-dimensional acceleration space, recorded using triaxal accelerometers. These paths are encoded as three piecewise polynomial wavelets in this space, allowing the advantages of the scale-invariance of wavelets to be used. This means that motions executed more rapidly or more slowly can be represented by the same shape.
