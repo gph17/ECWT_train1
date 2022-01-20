@@ -3,7 +3,7 @@
 ## ECWT_train1
 ### Documentation
 1. Write README.md;
-2. Produce video clip of set-up and run;
+2. Produce video clip of set-up and run - first effort made, not entirely satisfactory;
 3. Produce documentation describing set-up and run;
 4. Expand README content in new pdf;
 ### Software
