@@ -17,6 +17,16 @@ class dataWin1: public drawable
 public:
 	dataWin1(int = 0, int = 0);
 
+	void cycle()
+	{
+		double tmp = Vec(0);
+		for (int i = 1; i < WLen; i++)
+		{
+			Vec(i - 1) = Vec(i);
+		}
+		Vec(WLen - 1) = tmp;
+	}
+
 	int getLen() const
 	{
 		return WLen;

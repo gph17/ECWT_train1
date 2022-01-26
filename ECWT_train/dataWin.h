@@ -27,6 +27,12 @@ public:
 	void adjYScale(HWND);
 	void draw(HWND hwnd);
 
+	void cycle()
+	{
+		for (int i = 0; i < 3; i++)
+			chan[i].cycle();
+	}
+
 	Eigen::Vector3d mean() const
 	{
 		Eigen::Vector3d ret;

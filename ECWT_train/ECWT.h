@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include<cmath>
 #include<compare>
 #include <Eigen/Eigenvalues>
@@ -40,6 +41,8 @@ class ECWT
 
 	double rotIP(const ECWT&) const;
 	double rotShIP(const ECWT&) const;
+	double rotIP(const dataWin&) const;
+	double rotShIP(const dataWin&) const;
 
 public:
 	ECWT(int n1, int c, int w) : n(n1), cNo(c), wCNo(w), iscanonical(false), WLen(0)
@@ -80,6 +83,31 @@ double ECWT<T>::rotIP(const ECWT<T>& ECWT1) const
 			K(i, j) = wv[i].IP(ECWT1.wv[j]);
 	Eigen::JacobiSVD<Eigen::Matrix3d> svd(K);
 	return svd.singularValues().sum();
+}
+
+template<typename T>
+double ECWT<T>::rotIP(const dataWin& dW) const
+{
+	Eigen::Matrix3d K;
+	int i, j;
+	for (i = 0; i < 3; i++)
+		for (j = 0; j < 3; j++)
+			K(i, j) = wv[i].IP(dW.chan[j]);
+	Eigen::JacobiSVD<Eigen::Matrix3d> svd(K);
+	return svd.singularValues().sum();
+}
+
+template<typename T>
+double ECWT<T>::rotShIP(const dataWin& dW) const
+{
+	double ret = rotIP(dW);
+	dataWin dW1 = dW;
+	for (int i = 0; i < dW.WLen - 1; i++)
+	{
+		dW1.cycle();
+		ret = max(ret, rotIP(dW1));
+	}
+	return ret;
 }
 
 template<typename T>
