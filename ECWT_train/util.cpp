@@ -107,3 +107,110 @@ double KahanSum(double* terms, int Len)
 
 	return sum;
 }
+
+void grSearch(double (*fn)(double), double x1, double x2, double tol, double& x, double& v)
+{
+	if (x1 > x2)
+	{
+		grSearch(fn, x2, x1, tol, x, v);
+		return;
+	}
+	if (x1 == x2)
+	{
+		x = x1;
+		v = fn(x);
+		return;
+	}
+	double x3 = x1 + gr * (x2 - x1), v1 = fn(x1), v2 = fn(x2), v3 = fn(x3), x4 = x1 + (1 - gr) * (x2 - x1), v4 = fn(x4);
+	//ascending order: x1, x4, x3, x2
+	if (std::abs(x2 - x1) < tol * (std::abs(x3) + std::abs(x4)))
+	{
+		if ((v3 <= v1) && (v3 <= v2) && (v3 <= v4))
+		{
+			x = x3;
+			v = v3;
+		}
+		else
+			if ((v4 <= v1) && (v4 <= v2))
+			{
+				x = x4;
+				v = v4;
+			}
+			else
+				if (v1 <= v2)
+				{
+					x = x1;
+					v = v1;
+				}
+				else
+				{
+					x = x2;
+					v = v2;
+				}
+		return;
+	}
+	if (((v1 <= v3) && (v1 <= v2)) || ((v4 <= v3) && (v4 <= v2)))
+		grSearch(fn, x1, x4, x3, v1, v4, v3, tol, x, v);
+	else
+		grSearch(fn, x4, x3, x2, v4, v3, v2, tol, x, v);
+}
+
+void grSearch(double (*fn)(double), double x1, double x2, double x3, double v1, double v2, double v3, double tol,
+	double& x, double& v)
+{
+	double x4, v4;
+	if ((x2 - x1) < (x3 - x2))
+	{
+		x4 = x1 + x3 - x2;
+		v4 = fn(x4);//order x1, x2, x4, x3, want x1, x4, x3, x2
+		double tmp = x2;
+		x2 = x4;
+		x4 = x3;
+		x3 = tmp;
+		tmp = v2;
+		v2 = v4;
+		v4 = v3;
+		v3 = tmp;
+	}
+	else
+	{
+		x4 = x2 - (x3 - x2);
+		v4 = fn(x4);//order x1, x4, x2, x3 want x1, x4, x3, x2
+		double tmp = x2;
+		x2 = x3;
+		x3 = tmp;
+		tmp = v2;
+		v2 = v3;
+		v3 = tmp;
+	}
+	if (std::abs(x2 - x1) < tol * (std::abs(x3) + std::abs(x4)))
+	{
+		if ((v3 <= v1) && (v3 <= v2) && (v3 <= v4))
+		{
+			x = x3;
+			v = v3;
+		}
+		else
+			if ((v4 <= v1) && (v4 <= v2))
+			{
+				x = x4;
+				v = v4;
+			}
+			else
+				if (v1 <= v2)
+				{
+					x = x1;
+					v = v1;
+				}
+				else
+				{
+					x = x2;
+					v = v2;
+				}
+		return;
+	}
+	if (((v1 <= v3) && (v1 <= v2)) || ((v4 <= v3) && (v4 <= v2)))
+		grSearch(fn, x1, x4, x3, v1, v4, v3, tol, x, v);
+	else
+		grSearch(fn, x4, x3, x2, v4, v3, v2, tol, x, v);
+}

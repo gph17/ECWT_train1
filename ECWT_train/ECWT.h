@@ -38,10 +38,8 @@ class ECWT
 		return wv[0].IP(dW.chan[0]) + wv[1].IP(dW.chan[1]) + wv[2].IP(dW.chan[2]);
 	}
 
-	double rotIP(ECWT&);
-	double rotShIP(ECWT&);
-	double rotIP(dataWin&);
-	double rotShIP(dataWin&);
+	double rotIP(const ECWT&) const;
+	double rotShIP(const ECWT&) const;
 
 public:
 	ECWT(int n1, int c, int w) : n(n1), cNo(c), wCNo(w), iscanonical(false), WLen(0)
@@ -71,6 +69,18 @@ public:
 	template <typename T>
 	friend class Lib;
 };
+
+template<typename T>
+double ECWT<T>::rotIP(const ECWT<T>& ECWT1) const
+{
+	Eigen::Matrix3d K;
+	int i, j;
+	for (i = 0; i < 3; i++)
+		for (j = 0; j < 3; j++)
+			K(i, j) = wv[i].IP(ECWT1.wv[j]);
+	Eigen::JacobiSVD<Eigen::Matrix3d> svd(K);
+	return svd.singularValues().sum();
+}
 
 template<typename T>
 void ECWT<T>::canonicise()

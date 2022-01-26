@@ -1,8 +1,11 @@
 #pragma once
 
+#include <cmath>
 #include <Eigen/Dense>
 #include <map>
 #include <windows.h>
+
+static double gr = (1 + std::sqrt(5.0))/2;
 
 long long comb(int, int);
 
@@ -29,3 +32,6 @@ struct complexKey
 };
 
 Eigen::VectorXd xvals(int);
+
+void grSearch(double (*fn)(double), double, double, double, double&, double&);
+void grSearch(double (*fn)(double), double, double, double, double, double, double, double, double&, double&);
