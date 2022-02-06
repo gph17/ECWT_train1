@@ -9,6 +9,7 @@
 #include<string>
 
 #include "dataWin.h"
+#include "IPFunctor.h"
 #include "PWvlet.h"
 #include "util.h"
 #include "wvlet.h"
@@ -71,6 +72,9 @@ public:
 
 	template <typename T>
 	friend class Lib;
+
+	template <typename T>
+	friend class IPFunctor;
 };
 
 template<typename T>
@@ -108,6 +112,25 @@ double ECWT<T>::rotShIP(const dataWin& dW) const
 		ret = max(ret, rotIP(dW1));
 	}
 	return ret;
+}
+
+template<typename T>
+double ECWT<T>::rotShIP(const ECWT& ECWT1) const
+{
+	//Look at functors - store 3 x (2n + 1) 3x3 matrices as a state representing a matrix-valued polynomial in t, map 
+	//	from input t to matrix at t, sum eigenvalues. This sum to be maximised
+	IPFunctor IPF(*this, ECWT1);
+	double t1 = 0, t2 = 0.01, x, val, bVal;
+	grSearch(IPF, t1, t2, 1e-10, x, bVal);
+	while (t1 < 0.995)
+	{
+		t1 += 0.01;
+		t2 += 0.01;
+		grSearch(IPF, t1, t2, 1e-10, x, val);
+		if (val > bVal)
+			bVal = val;
+	}
+	return bVal;
 }
 
 template<typename T>

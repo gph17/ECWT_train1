@@ -162,6 +162,7 @@
     <ClInclude Include="dAWin.h" />
     <ClInclude Include="drawable.h" />
     <ClInclude Include="ECWT.h" />
+    <ClInclude Include="IPFunctor.h" />
     <ClInclude Include="Lib.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="PWvlet.h" />

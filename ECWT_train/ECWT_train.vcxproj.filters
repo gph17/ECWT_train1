@@ -77,5 +77,8 @@
     <ClInclude Include="dAWin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IPFunctor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
