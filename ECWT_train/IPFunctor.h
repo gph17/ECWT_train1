@@ -35,5 +35,5 @@ double IPFunctor<T>::operator()(double t) const
 	for (int s = N - 2; s >= 0; s--)
 		K1 = K[s] + t * K1;
 	Eigen::JacobiSVD<Eigen::Matrix3d> svd(K1);
-	return svd.singularValues().sum();
+	return -svd.singularValues().sum();
 }
