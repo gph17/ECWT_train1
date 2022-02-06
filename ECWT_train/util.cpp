@@ -214,3 +214,15 @@ void grSearch(double (*fn)(double), double x1, double x2, double x3, double v1, 
 	else
 		grSearch(fn, x4, x3, x2, v4, v3, v2, tol, x, v);
 }
+
+long long factorial(int n)
+{
+	if (n < 0)
+		exit(-1);
+	return ((n == 0) || (n == 1)) ? 1 : n * factorial(n - 1);
+}
+
+long long nchoosek(int n, int k)
+{
+	return factorial(n) / factorial(k) / factorial(n - k);
+}

@@ -13,7 +13,7 @@ using namespace std;
 /*initialise static members*/
 map<complexKey, MatrixXd> PWvlet::G;
 map<complexKey, MatrixXd> PWvlet::P;
-MatrixXd PWvlet::H;
+map<int, MatrixXd> PWvlet::H;
 Matrix<long long, Dynamic, Dynamic> PWvlet::W;
 map<int, Matrix<long long, Dynamic, Dynamic>> PWvlet::Hi;
 
@@ -104,71 +104,141 @@ void PWvlet::populate(const dataWin1& dW)
 
 
 /*make static members*/
-void PWvlet::makeH(int n1)
+void PWvlet::makeH(int n1, bool all)
 {
+	all = true;
 	if (n1 > 16)
 	{
 		cerr << "Maximum size of n before long long wraps in calculation of H^{-1} is 16\n";
 		exit(-1);
 	}
-	long long i, j;
-	long long Hn = H.cols();
-	if (Hn>= n1 + 1LL)
+
+	/*possibilities are:	all = false:
+								H[0] incomplete - complete and return
+								H[0] complete - return
+							all = true
+								H[0] incomplete (=> H[0+] incomplete) - complete H[0] and H[0+] and return
+								H[0] complete, H[0+] incomplete - complete H[0+] and return
+								H[0+] complete (=> H[0] complete) - return
+	Be aware that referring to H[j] in code calls it into existence! - e.g.
+																			int i = H.size();
+																			int j = H[0].cols();
+																			int k = H.size();
+	results in k > 0, even if i== 0 - expected second line would throw an error if i== 0.
+	Possible source of problems if code transported to different compiler, so code as if it would throw an error*/
+
+	long long Hn = 0;
+	if (H.size())
+		Hn = H[0].cols();
+	if ((Hn > n1) && !all)
 		return;
-	if (Hn == 0)
+	long long i, j, k, ell, s;
+	if (Hn <= n1)
 	{
-		H.resize(n1 + 1LL, n1 + 1LL);
-		for (i = 0; i <= n1; i++)
-			for (j = 0; j<= n1; j++)
-				H(i, j) = 1.0/ (1.0 + i + j);
-	}
-	else
-	{
-		H.conservativeResize(n1 + 1LL, n1 + 1LL);
-		for (i = 0; i <= n1; i++)
-			for (j = (i < Hn)? Hn: 0; j <= n1; j++)
-				H(i, j) = 1.0 / (1.0 + i + j);
-	}
-	Matrix<long long, Dynamic, Dynamic> Hitmp(n1 + 1, n1 + 1);
-	Hitmp.setZero();
-	Hitmp(0, 1) = -(n1 * (n1 + 1) * (n1 + 1) * (n1 + 2)) / 2;
-	Hitmp(1, 0) = Hitmp(0, 1);
-	long long nfac, dfac, g;
-	for (i = 0; i < n1; i++)
-	{
-		if (i > 0)
+		if (Hn == 0)
 		{
-			nfac = (n1 + 1LL + i) * (n1 + 2LL + i) * ((long long)n1 - i) * (n1 + 1LL - i);
-			dfac = i * (i + 1LL) * (i + 1LL) * (i + 1LL);
+			H[0].resize(n1 + 1LL, n1 + 1LL);
+			for (i = 0; i <= n1; i++)
+				for (j = 0; j <= n1; j++)
+					H[0](i, j) = 1.0 / (1.0 + i + j);
+		}
+		else
+		{
+			H[0].conservativeResize(n1 + 1LL, n1 + 1LL);
+			for (i = 0; i <= n1; i++)
+				for (j = (i < Hn) ? Hn : 0; j <= n1; j++)
+					H[0](i, j) = 1.0 / (1.0 + i + j);
+		}
+		Matrix<long long, Dynamic, Dynamic> Hitmp(n1 + 1, n1 + 1);
+		Hitmp.setZero();
+		Hitmp(0, 1) = -(n1 * (n1 + 1) * (n1 + 1) * (n1 + 2)) / 2;
+		Hitmp(1, 0) = Hitmp(0, 1);
+		long long nfac, dfac, g;
+		for (i = 0; i < n1; i++)
+		{
+			if (i > 0)
+			{
+				nfac = (n1 + 1LL + i) * (n1 + 2LL + i) * ((long long)n1 - i) * (n1 + 1LL - i);
+				dfac = i * (i + 1LL) * (i + 1LL) * (i + 1LL);
+				g = gcd(nfac, dfac);
+				nfac /= g;
+				dfac /= g;
+				Hitmp(i, i + 1LL) = nfac * (Hitmp(i - 1LL, i) / dfac);
+				Hitmp(i + 1LL, i) = Hitmp(i, i + 1LL);
+			}
+			for (j = i + 2; j <= n1; j++)
+			{
+				nfac = (i + j) * (n1 + 1LL - j) * (n1 + 1LL + j);
+				dfac = j * j * (i + j + 1LL);
+				g = gcd(nfac, dfac);
+				nfac /= g;
+				dfac /= g;
+				Hitmp(i, j) = -nfac * (Hitmp(i, j - 1LL) / dfac);
+				Hitmp(j, i) = Hitmp(i, j);
+			}
+		}
+		Hitmp(0, 0) = (n1 + 1LL) * (n1 + 1LL);
+		for (i = 1; i < n1 + 1LL; i++)
+		{
+			nfac = (2LL * i - 1LL) * (n1 + 1LL - i) * (n1 + 1LL + i) * (n1 + 1LL - i) * (n1 + 1LL + i);
+			dfac = (2LL * i + 1LL) * i * i * i * i;
 			g = gcd(nfac, dfac);
 			nfac /= g;
 			dfac /= g;
-			Hitmp(i, i + 1LL) = nfac * (Hitmp(i - 1LL, i) / dfac);
-			Hitmp(i + 1LL, i) = Hitmp(i, i + 1LL);
+			Hitmp(i, i) = nfac * (Hitmp(i - 1LL, i - 1LL) / dfac);
 		}
-		for (j = i + 2; j <= n1; j++)
-		{
-			nfac = (i + j) * (n1 + 1LL - j) * (n1 + 1LL + j);
-			dfac = j * j * (i + j + 1LL);
-			g = gcd(nfac, dfac);
-			nfac /= g;
-			dfac /= g;
-			Hitmp(i, j) = -nfac * (Hitmp(i, j - 1LL)/dfac);
-			Hitmp(j, i) = Hitmp(i, j);
-		}
+		Hi[n1] = Hitmp;
 	}
-	Hitmp(0, 0) = (n1 + 1LL) * (n1 + 1LL);
-	for (i = 1; i < n1 + 1LL; i++)
+	if (!all || H.size()== (2 * n1 + 1))
+		return;
+	double G0 = 1.0/ (n1 + 1.0);
+	for (s = 1; s<= (2 * n1); s++)
 	{
-		nfac = (2LL * i - 1LL) * (n1 + 1LL - i) * (n1 + 1LL + i) * (n1 + 1LL - i) * (n1 + 1LL + i);
-		dfac = (2LL * i + 1LL) * i * i * i * i;
-		g = gcd(nfac, dfac);
-		nfac /= g;
-		dfac /= g;
-		Hitmp(i, i) = nfac * (Hitmp(i - 1LL, i - 1LL) /dfac);
+		MatrixXd F = MatrixXd::Zero(n1 + 1, n1 + 1);
+		MatrixXd G = MatrixXd::Zero(n1 + 1, n1 + 1);
+		if (s <= n1)
+			for (k = 1; k <= n1; k++)
+			{
+				F(k, s) = (s % 2 ? -1 : 1) / (k + 1.0);
+				for (ell = s + 1; ell <= n1; ell++)
+					F(k, ell) = ell * (k + ell - s) * F(k, ell - 1) / ((ell - s) * (k + ell + 1.0 - s));
+			}
+		if ((s > 1) && (s<= n1 + 1))
+		{
+			G(s - 1, 1) = 1.0/s;
+			for (ell = 2; ell < s - 1; ell++)
+			{
+				G(s - ell, ell) = -ell * G(s + 1 - ell, ell - 1)/(s + 1.0 - ell);
+				for (k = s - ell + 1; k <= s - 1; k++)
+					G(k, ell) = -k * G(k - 1, ell) /(k + ell + 1.0 - s);
+			}
+			G(1, s - 1) = (s % 2 ? -1 : 1)/ ((double)s);
+			for (k = 2; k <= s - 1; k++)
+				G(k, s - 1) = -G(k - 1, s - 1);
+			for (ell = s; ell <= n1; ell++)
+			{
+				G(1, ell) = ell * G(1, ell - 1)/(ell + 2.0 - s);
+				for (k = 2; k <= s - 1; k++)
+					G(k, ell) = -k * G(k - 1, ell) / (k + ell + 1.0 - s);
+			}
+		}
+		else
+			if (s > 1)
+			{
+				G0 *= -(s - n1) / ((double)s);
+				G(n1, s - n1) = G0;
+				for (ell = s - n1 + 1; ell<= n1; ell++)
+				{
+					G(s - ell, ell) = -(ell * G(s - ell + 1, ell - 1))/(s + 1.0 - ell);
+					for (k = s - ell + 1; k <= n1; k++)
+						G(k, ell) = -(k * G(k - 1, ell))/(k + ell + 1.0 - s);
+				}
+			}
+
+		H[s] = G + F;
 	}
-	Hi[n1] = Hitmp;
 }
+
 
 void PWvlet::makeW(int n1, int w1)
 {
@@ -370,7 +440,7 @@ void PWvlet::makeP(int n1, int c1, int w1)
 	{
 		MatrixXd tmp = MatrixXd::Identity(n1 + 1, n1 + 1);
 		for (i = 0; i < n1 + 1; i++)
-			tmp(0, i) -= H(0, i);
+			tmp(0, i) -= H[0](0, i);
 		P[cK] = tmp;
 		return;
 	}

@@ -17,8 +17,9 @@ class PWvlet :
 {
 	UINT msg = WVLTDRAW;
 public:
-	static Eigen::MatrixXd H;	//generate for highest value of n encountered - for lower values, it can be used in 
-								//	truncated form
+	static std::map<int, Eigen::MatrixXd> H;	//for all = false in makeH, generate the 0th matrix for highest value  
+								//	of n encountered - for lower values, it can be used in truncated form. For  
+								//	all = true, generate all matrices up to the (2n)th
 	static Eigen::Matrix<long long, Eigen::Dynamic, Eigen::Dynamic> W;	
 		//lists for WRAPPED continuity conditions - set to zero size, then generate for largest n and wCNo
 		//	encountered - truncate for smaller n and wCNo (for CONTINUITY conditions, its partner is too simple to
@@ -34,7 +35,7 @@ public:
 	static std::set<int> getValid();
 	static std::set<std::pair<int, int>> getValid(int);
 	/*make static members*/
-	static void makeH(int);
+	static void makeH(int, bool = false);
 	static void makeG(int, int, int);
 	static void makeP(int, int, int);
 	static void makeW(int, int);
@@ -42,7 +43,7 @@ public:
 	/*make inner products*/
 	double IP(const wvlet& wv) const	//L2 IP
 	{
-		return wv.para.transpose() * (H(Eigen::seq(0, wv.getn()), Eigen::seq(0, n)) * para);
+		return wv.para.transpose() * (H[0](Eigen::seq(0, wv.getn()), Eigen::seq(0, n)) * para);
 	}
 
 	double IP(const dataWin1&) const;	//L2 IP

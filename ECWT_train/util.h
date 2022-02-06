@@ -35,3 +35,7 @@ Eigen::VectorXd xvals(int);
 
 void grSearch(double (*fn)(double), double, double, double, double&, double&);
 void grSearch(double (*fn)(double), double, double, double, double, double, double, double, double&, double&);
+
+long long factorial(int);
+
+long long nchoosek(int, int);
