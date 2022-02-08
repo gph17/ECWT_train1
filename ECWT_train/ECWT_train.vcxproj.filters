@@ -81,4 +81,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\Downloads\ParkSysGH.pdf" />
+  </ItemGroup>
 </Project>

@@ -169,6 +169,9 @@
     <ClInclude Include="util.h" />
     <ClInclude Include="wvlet.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\Downloads\ParkSysGH.pdf" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
