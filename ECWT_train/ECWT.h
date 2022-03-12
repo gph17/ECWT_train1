@@ -29,6 +29,12 @@ class ECWT
 	void canonicise();
 	double signature[3];
 
+	double operator[](int k)
+	{
+		int i = k / (n + 1), j = k % (n + 1);
+		return wv[j].para[i];
+	}
+
 	/*make inner products*/
 	double IP(const ECWT& ECWT1) const
 	{

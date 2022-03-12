@@ -43,6 +43,20 @@ class Lib
 	int wCNo;
 	std::size_t LSize;
 	double GoFThresh;
+	class box
+	{
+		std::vector<int> pts;
+		std::vector<double> left, right;
+
+		box(box&&);
+		box();
+
+		box split();
+		int content() const
+		{
+			return pts.size();
+		}
+	};
 
 public:
 	Lib<T>(int n1 = 0, int c = -1, int w = -1, double g = -1, std::list<int> W = std::list<int>(), size_t MS = 0) :
@@ -54,6 +68,16 @@ public:
 
 	void build(wchar_t const*, int,  HWND = NULL, 
 		std::chrono::duration<double> shFreq = std::chrono::duration<double>::zero());
+
+	std::size_t size()
+	{
+		return LSize;
+	}
+
+	int deg()
+	{
+		return n;
+	}
 
 	void setDeg(int n1)
 	{
@@ -282,3 +306,27 @@ void Lib<T>::build(wchar_t const* src, int WinStep, HWND hwnd, std::chrono::dura
 	}
 }
 
+template<typename T>
+Lib<T>::box::box()
+{
+	pts[0] = 0;
+	int i, j, k, ell;
+	for (j = 0; j < 3; j++)
+		for (i = 0; i <= n; i++)
+		{
+			ell = j * (n + 1) + i;
+			left[ell] = LibStore[0][ell];
+			right[ell] = LibStore[0][ell];
+		}
+			for (k = 1; k < LSize; k++)
+			{
+				pts[k] = k;
+				for (j = 0; j < 3; j++)
+					for (i = 0; i <= n; i++)
+					{
+						ell = j * (n + 1) + i;
+						left[ell] = min(left[ell], LibStore[k][ell]);
+						right[ell] = max(right[ell], LibStore[k][ell]);
+					}
+			}
+}
